@@ -417,6 +417,9 @@ with aba_men:
     esq, dir_ = st.columns([2, 3], gap="large")
     with esq.container(border=True):
         opcoes = [None, *[m["id"] for m in todos]]
+        if "_editar" in st.session_state:  # pedido vindo do botão "Editar" da tabela
+            pedido = st.session_state.pop("_editar")
+            st.session_state["m_edit"] = pedido if pedido in opcoes else None
         edit_id = st.selectbox("Cadastro", opcoes, key="m_edit",
                                format_func=lambda i: "Novo mensalista" if i is None else f"Editar: {por_id[i]['nome']}")
         m0 = por_id.get(edit_id) or {}
@@ -436,7 +439,10 @@ with aba_men:
             if st.form_submit_button("Salvar alterações" if edit_id else "Cadastrar mensalista", type="primary", width="stretch"):
                 dados_m = {"nome": nome, "veiculo": veiculo, "modelo": modelo, "placa": placa, "plano": plano, "valor": centavos(f"{valor_m:.2f}"),
                            "inicio": inicio.isoformat(), "obs": obs.strip()}
-                acao(lambda: db.salvar_mensalista(dados_m, edit_id), "Cadastro atualizado." if edit_id else "Mensalista cadastrado.")
+                def salvar_m():
+                    db.salvar_mensalista(dados_m, edit_id)
+                    st.session_state["_editar"] = None  # volta para "Novo mensalista"
+                acao(salvar_m, "Cadastro atualizado." if edit_id else "Mensalista cadastrado.")
 
     with dir_.container(border=True):
         comp_m = escolher_comp("Competência", "m_comp")
@@ -469,7 +475,12 @@ with aba_men:
                 forma = a.selectbox("Forma de pagamento", PAGAMENTOS, index=1, key="m_forma")
                 tipo = a2.selectbox("Cobrança", ["Mensalidade cheia", "Férias (metade do valor)"], key="m_tipo")
                 ferias_m = tipo.startswith("Férias")
-                b, c, d_ = st.columns(3)
+                e_, b, c, d_ = st.columns(4)
+                if e_.button("Editar", disabled=len(esc) != 1, width="stretch",
+                             help="Marque só um mensalista para editar o cadastro."):
+                    st.session_state["_editar"] = esc[0]["id"]
+                    aviso(f"Editando {esc[0]['nome']}: altere os dados no formulário de cadastro e clique em Salvar alterações.")
+                    st.rerun()
                 pagaveis = [m for m in esc if m["ativo"] and m["id"] not in pagos]
                 if b.button("Marcar pago", disabled=not pagaveis, width="stretch"):
                     dt = hoje() if hoje()[:7] == comp_m else comp_m + "-01"
@@ -483,7 +494,7 @@ with aba_men:
                 excluir_popover("Excluir cadastro", len(esc), lambda: [db.del_mensalista(m["id"]) for m in esc],
                                 "Cadastro excluído. Pagamentos anteriores continuam no histórico.", "del_men")
             else:
-                st.caption("Marque mensalistas na tabela para registrar pagamento, inativar ou excluir.")
+                st.caption("Marque mensalistas na tabela para editar, registrar pagamento, inativar ou excluir.")
 
 
 # ================================================================ DESPESAS
