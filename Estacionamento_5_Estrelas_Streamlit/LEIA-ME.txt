@@ -1,0 +1,112 @@
+ESTACIONAMENTO 5 ESTRELAS — SISTEMA EM PYTHON (STREAMLIT)
+=========================================================
+
+O que é
+-------
+O mesmo sistema do app no Claude (visão geral, receitas, mensalistas,
+despesas, fechamento e planilha em Excel), escrito em Python.
+Ele fica na internet com endereço próprio e abre no celular e no computador.
+
+Onde cada coisa fica (tudo grátis):
+  - Código .............. GitHub (github.com)
+  - Site no ar .......... Streamlit Community Cloud (share.streamlit.io)
+  - Dados ............... Supabase (supabase.com), um banco PostgreSQL
+  - Acesso .............. protegido por uma senha que você escolhe
+
+Arquivos desta pasta
+--------------------
+  app.py ................ as telas do sistema
+  dados.py .............. banco de dados e cálculos do fechamento
+  relatorio.py .......... planilha Excel do fechamento
+  requirements.txt ...... bibliotecas que o Streamlit instala sozinho
+  logo.png .............. logo
+  .streamlit/config.toml  cores do sistema
+  secrets.exemplo.toml .. modelo das configurações secretas (NÃO vai para o GitHub)
+
+
+PASSO 1 — Criar o banco de dados (Supabase)                     ~10 min
+-----------------------------------------------------------------------
+1. Entre em supabase.com e clique em "Start your project". Entre com uma
+   conta GitHub ou e-mail.
+2. Clique em "New project".
+     Name: estacionamento-5-estrelas
+     Database Password: clique em "Generate a password" e GUARDE essa senha
+                        (use só letras e números).
+     Region: South America (São Paulo)
+   Clique em "Create new project" e espere uns 2 minutos.
+3. No topo do projeto, clique em "Connect".
+   Escolha a aba de conexão por URI e a opção "Session pooler".
+   Copie o endereço. Ele se parece com:
+   postgresql://postgres.abcdefgh:[YOUR-PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
+4. Troque [YOUR-PASSWORD] pela senha do banco que você guardou
+   (sem os colchetes). Guarde esse endereço completo: é o "database_url".
+
+Não precisa criar tabelas: o sistema cria sozinho na primeira vez que abrir.
+
+
+PASSO 2 — Colocar o código no GitHub                            ~10 min
+-----------------------------------------------------------------------
+1. Crie uma conta em github.com (se ainda não tiver).
+2. Clique em "+" (canto superior direito) > "New repository".
+     Repository name: estacionamento-5-estrelas
+     Marque "Private"
+   Clique em "Create repository".
+3. Clique em "uploading an existing file" e arraste os arquivos desta pasta:
+   app.py, dados.py, relatorio.py, requirements.txt, logo.png, .gitignore
+   NÃO envie o secrets.exemplo.toml com senhas preenchidas.
+4. Clique em "Commit changes".
+5. Para as cores: clique em "Add file" > "Create new file", digite o nome
+   .streamlit/config.toml e cole o conteúdo do arquivo config.toml
+   desta pasta. Clique em "Commit changes".
+   (O GitHub às vezes ignora pastas arrastadas; por isso esse passo é à parte.)
+
+
+PASSO 3 — Colocar o sistema no ar (Streamlit)                    ~5 min
+-----------------------------------------------------------------------
+1. Entre em share.streamlit.io com a sua conta GitHub e autorize o acesso.
+2. Clique em "Create app" > "Deploy a public app from GitHub"
+   (o código continua privado; só o site fica acessível, e ele pede senha).
+     Repository: seu-usuario/estacionamento-5-estrelas
+     Branch: main
+     Main file path: app.py
+     App URL: escolha um endereço, ex.: estacionamento5estrelas
+3. Clique em "Advanced settings". Em "Secrets", cole (com os seus dados):
+
+     senha = "a-senha-que-voce-quer-usar-para-entrar"
+     database_url = "o endereço do Passo 1, item 4"
+
+   Em "Python version", deixe a sugerida.
+4. Clique em "Deploy". A primeira vez leva alguns minutos.
+
+Pronto: o endereço fica tipo https://estacionamento5estrelas.streamlit.app
+No celular, abra o endereço e use "Adicionar à tela inicial".
+
+
+PASSO 4 — Trazer os dados que já existem
+-----------------------------------------------------------------------
+1. No app do Claude: aba Fechamento > "Baixar cópia de segurança".
+2. No sistema novo: aba "Fechamento e dados" > "Trazer dados de outro app",
+   escolha o arquivo e clique em "Importar dados".
+   Também aceita o arquivo "Exportar para Python" do dashboard antigo.
+   Importar o mesmo arquivo de novo não duplica nada.
+3. Confira os totais de cada mês e, a partir daí, lance só no sistema novo.
+
+
+Bom saber
+---------
+- Plano grátis do Streamlit: se o site ficar muitas horas sem ninguém abrir,
+  ele "dorme". Na próxima vez aparece um botão para acordá-lo e leva uns
+  30 segundos. Os dados não se perdem.
+- Plano grátis do Supabase: se o banco ficar 7 dias sem uso, o projeto é
+  pausado. Entre em supabase.com e clique em "Restore project". Usando o
+  sistema toda semana, isso não acontece.
+- Faça uma cópia de segurança todo mês (aba Fechamento e dados).
+- Para trocar a senha de entrada: Streamlit > seu app > Settings > Secrets.
+- Para mudar o sistema, edite os arquivos no GitHub; o site atualiza sozinho
+  em cerca de 1 minuto.
+
+Rodar no próprio computador (opcional, para testes)
+---------------------------------------------------
+  pip install -r requirements.txt
+  streamlit run app.py
+Sem "database_url", os dados ficam num arquivo local.sqlite3 nesta pasta.
