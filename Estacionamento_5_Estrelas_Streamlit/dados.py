@@ -25,7 +25,7 @@ CATEGORIAS = ["Internet", "Celular", "Manutenção", "Contador", "Salário", "Im
               "Luz", "Água", "Aluguel", "Outros"]
 VEICULOS = ["Carro", "Moto"]
 PLANOS = ["Todos os dias", "2 vezes por semana", "Personalizado"]
-INICIO = "2026-09"  # primeira competência da base
+INICIO = "2026-08"  # primeira competência da base
 
 TABELAS = """
 CREATE TABLE IF NOT EXISTS receitas (
@@ -219,7 +219,7 @@ class Banco:
     # ------------------------------------------------------------ lançamentos
     def add_receita(self, data, modalidade, pagamento, valor_c):
         if not data_valida(data):
-            raise ValueError("Use uma data a partir de 01/09/2026.")
+            raise ValueError("Use uma data a partir de 01/08/2026.")
         if modalidade not in MODALIDADES or pagamento not in PAGAMENTOS:
             raise ValueError("Modalidade ou forma de pagamento inválida.")
         if valor_c <= 0:
@@ -236,7 +236,7 @@ class Banco:
         if dados.get("valor", 0) <= 0:
             raise ValueError("Informe o valor mensal.")
         if not data_valida(dados.get("inicio")):
-            raise ValueError("A data de início deve ser a partir de 01/09/2026.")
+            raise ValueError("A data de início deve ser a partir de 01/08/2026.")
         placa = normalizar_placa(dados.get("placa"))
         if not placa_valida(placa):
             raise ValueError("Placa inválida. Use o formato ABC1234 ou ABC1D23.")
@@ -279,7 +279,7 @@ class Banco:
 
     def add_despesa(self, data, categoria, descricao, valor_c):
         if not data_valida(data):
-            raise ValueError("Use uma data a partir de 01/09/2026.")
+            raise ValueError("Use uma data a partir de 01/08/2026.")
         if valor_c <= 0:
             raise ValueError("Informe o valor da despesa.")
         self.x("INSERT INTO despesas (id,data,categoria,descricao,valor,criado_em) VALUES (?,?,?,?,?,?)",
