@@ -24,9 +24,61 @@ AZUL, DOURADO, VERDE, BRONZE, ARDOSIA, VERMELHO = "#073449", "#d6aa24", "#397c7b
 st.set_page_config(page_title="Estacionamento 5 Estrelas", page_icon=str(LOGO) if LOGO.exists() else None,
                    layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""<style>
-[data-testid="stMetricValue"]{font-size:1.45rem}
-[data-testid="stMetricLabel"] p{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
-.block-container{padding-top:1.4rem}
+@import url('https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Figtree:wght@400;500;600;700;800&display=swap');
+:root{--bg:#eef2f5;--card:#ffffff;--card2:#f3f6f8;--ink:#0b2a3c;--muted:#5d7180;--line:#dbe3e9;
+  --navy:#073449;--gold:#d6aa24;--gold-ink:#8a6a0c;--gold-soft:#fbf3d9;--danger:#a4473b}
+html, body, .stApp, [class*="st-"], button, input, textarea, select{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
+.stApp{background:var(--bg);color:var(--ink)}
+[data-testid="stHeader"]{background:transparent}
+[data-testid="stDecoration"], footer{display:none}
+.block-container{padding-top:1.2rem;padding-bottom:6rem;max-width:1280px}
+h1,h2,h3{font-family:"Bitter",Georgia,serif!important;color:var(--ink)!important;letter-spacing:0}
+h2{font-size:1.35rem!important} h3{font-size:1.2rem!important}
+/* cabeçalho */
+.e5-top{display:flex;align-items:center;gap:14px;margin:0 0 14px}
+.e5-top img{width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);background:#fff;object-fit:cover}
+.e5-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);font-weight:800}
+.e5-title{font-family:"Bitter",Georgia,serif;font-weight:700;font-size:clamp(20px,2.4vw,27px);line-height:1.1;color:var(--ink)}
+/* abas como barra de botões */
+.stTabs [data-baseweb="tab-list"]{gap:4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:14px}
+.stTabs [data-baseweb="tab"]{flex:1 0 auto;justify-content:center;border-radius:10px;padding:10px 14px;height:auto;font-weight:700;color:var(--muted)}
+.stTabs [data-baseweb="tab"] p{font-weight:700;font-size:14px}
+.stTabs [aria-selected="true"]{background:var(--navy)!important;color:#fff!important}
+.stTabs [aria-selected="true"] p{color:#fff!important}
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{display:none}
+/* cartões */
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]), div[data-testid="stForm"]{background:var(--card);border:1px solid var(--line)!important;border-radius:18px!important;box-shadow:0 1px 2px rgba(7,40,58,.05),0 8px 24px rgba(7,40,58,.05)}
+div[data-testid="stForm"]{padding:18px}
+[data-testid="stMetric"]{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+[data-testid="stMetricLabel"] p{font-size:11px!important;text-transform:uppercase;letter-spacing:.08em;font-weight:800!important;color:var(--muted)}
+[data-testid="stMetricValue"]{font-family:"Bitter",Georgia,serif;font-weight:700;font-size:1.5rem!important;color:var(--ink)}
+.st-key-kpis [data-testid="stColumn"]:first-child [data-testid="stMetric"]{background:var(--navy);border-color:var(--navy)}
+.st-key-kpis [data-testid="stColumn"]:first-child [data-testid="stMetric"] *{color:#fff!important}
+/* campos */
+[data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="base-input"]{border-radius:11px!important}
+label p{font-size:11px!important;font-weight:800!important;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)!important}
+[data-testid="stCheckbox"] label p, [data-testid="stToggle"] label p, [data-testid="stExpander"] summary p{font-size:14px!important;font-weight:600!important;letter-spacing:0;text-transform:none;color:var(--ink)!important}
+/* escolhas (modalidade, pagamento) como botões */
+[data-testid="stRadio"] [role="radiogroup"]{gap:6px;flex-wrap:wrap}
+[data-testid="stRadio"] [role="radiogroup"] > label{margin:0;padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card2);flex:1 1 auto;justify-content:center;cursor:pointer}
+[data-testid="stRadio"] [role="radiogroup"] > label > div:first-child{display:none}
+[data-testid="stRadio"] [role="radiogroup"] > label p{font-size:14px!important;font-weight:700!important;text-transform:none;letter-spacing:0;color:var(--ink)!important}
+[data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked){background:var(--navy);border-color:var(--navy)}
+[data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) p{color:#fff!important}
+/* botões */
+.stButton button, .stDownloadButton button, .stFormSubmitButton button{border-radius:11px;font-weight:800;padding:.55rem 1.1rem}
+.stFormSubmitButton button[kind^="primary"], [data-testid="stBaseButton-primaryFormSubmit"]{background:var(--gold)!important;border-color:var(--gold)!important;color:#1d1705!important}
+[data-testid="stDataFrame"]{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+[data-testid="stAlert"]{border-radius:14px}
+/* celular: abas viram barra fixa embaixo */
+@media (max-width:760px){
+  .stTabs [data-baseweb="tab-list"]{position:fixed;left:0;right:0;bottom:0;z-index:1000;margin:0;border-radius:0;border-width:1px 0 0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));overflow-x:auto}
+  .stTabs [data-baseweb="tab"]{flex:1 1 0;padding:9px 4px;min-width:0}
+  .stTabs [data-baseweb="tab"] p{font-size:12px}
+  .stTabs [aria-selected="true"]{background:var(--gold-soft)!important}
+  .stTabs [aria-selected="true"] p{color:var(--ink)!important}
+  .e5-top img{width:46px;height:46px}
+}
 </style>""", unsafe_allow_html=True)
 
 
@@ -49,7 +101,7 @@ def login():
         st.subheader("Estacionamento 5 Estrelas")
         with st.form("login"):
             s = st.text_input("Senha", type="password")
-            if st.form_submit_button("Entrar", type="primary", use_container_width=True):
+            if st.form_submit_button("Entrar", type="primary", width="stretch"):
                 if hmac.compare_digest(s.encode(), str(senha).encode()):
                     st.session_state.logado = True
                     st.rerun()
@@ -129,8 +181,9 @@ MAX_DATA = date(2100, 12, 31)
 
 
 def tabela_selecionavel(df: pd.DataFrame, key: str, altura=None):
-    ev = st.dataframe(df, hide_index=True, use_container_width=True, on_select="rerun",
-                      selection_mode="multi-row", key=key, height=altura or "auto")
+    extra = {"height": int(altura)} if altura else {}  # versões novas não aceitam height=None
+    ev = st.dataframe(df, hide_index=True, width="stretch", on_select="rerun",
+                      selection_mode="multi-row", key=key, **extra)
     return [int(float(r[0] if isinstance(r, (list, tuple)) else r.get("row", -1) if isinstance(r, dict) else r)) for r in (ev.selection.rows if ev and ev.selection else [])]
 
 
@@ -145,15 +198,19 @@ def excluir_popover(label, n, fn, msg, key):
 
 
 # ------------------------------------------------------------------ topo
-c1, c2 = st.columns([1, 11], vertical_alignment="center")
-with c1:
-    if LOGO.exists():
-        st.image(str(LOGO), width=64)
-with c2:
-    st.markdown("<div style='font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#8a6a0c;font-weight:800'>Gestão financeira</div>"
-                "<div style='font-size:1.6rem;font-weight:800;line-height:1.15'>Estacionamento 5 Estrelas</div>", unsafe_allow_html=True)
+def logo_b64():
+    try:
+        import base64
+        return "data:image/png;base64," + base64.b64encode(LOGO.read_bytes()).decode()
+    except Exception:
+        return ""
 
-aba_geral, aba_rec, aba_men, aba_desp, aba_fech = st.tabs(["Visão geral", "Receitas", "Mensalistas", "Despesas", "Fechamento e dados"])
+
+st.markdown(f"""<div class="e5-top"><img src="{logo_b64()}" alt="">
+<div><div class="e5-eyebrow">Gestão financeira</div><div class="e5-title">Estacionamento 5 Estrelas</div></div></div>""",
+            unsafe_allow_html=True)
+
+aba_geral, aba_rec, aba_men, aba_desp, aba_fech = st.tabs(["Visão geral", "Receitas", "Mensalistas", "Despesas", "Fechamento"])
 
 
 # ============================================================ VISÃO GERAL
@@ -176,11 +233,12 @@ with aba_geral:
     din_t, pix_t, car_t = din + S("m_dinheiro"), pix + S("m_pix"), car + S("m_cartao")
     ativos = [x for x in linhas if x["receita"] > 0]
 
-    k = st.columns(3)
+    kp = st.container(key="kpis")
+    k = kp.columns(3)
     k[0].metric("Receita no período", brl(rec), help="Tudo o que entrou: avulsos (dinheiro, PIX, cartão) + mensalidades.")
     k[1].metric("Resultado", brl(res), help="Receita menos despesas lançadas.")
     k[2].metric("Despesas", brl(desp))
-    k = st.columns(3)
+    k = kp.columns(3)
     k[0].metric("Mensalistas", brl(mensal))
     k[1].metric("Em dinheiro", brl(din_t), help="Avulsos e mensalidades pagas em dinheiro.")
     k[2].metric("PIX e cartão", brl(pix_t + car_t), help=f"PIX {brl(pix_t)} · Cartão {brl(car_t)}")
@@ -190,7 +248,7 @@ with aba_geral:
     else:
         reais = lambda c: c / 100
         g1, g2 = st.columns([2, 1])
-        with g1:
+        with g1.container(border=True):
             nomes_ind = {"receita": "Receita total", "resultado": "Resultado", "despesas": "Despesas",
                          "dinheiro": "Dinheiro (avulsos)", "pix": "PIX (avulsos)", "cartao": "Cartão (avulsos)", "mensal": "Mensalistas"}
             ind = st.selectbox("Evolução financeira", list(nomes_ind), format_func=nomes_ind.get, key="g_ind")
@@ -201,23 +259,23 @@ with aba_geral:
                 x1=1, x2=1, y1=0, y2=1), point={"color": DOURADO}).encode(
                 x=alt.X("Mês:N", sort=alt.SortField("ordem"), title=None),
                 y=alt.Y("Valor:Q", title=None, axis=alt.Axis(format=",.0f")),
-                tooltip=["Mês", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=260), use_container_width=True)
-        with g2:
+                tooltip=["Mês", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=260), width="stretch")
+        with g2.container(border=True):
             st.markdown("**Mix de receita**")
             df = pd.DataFrame({"Tipo": ["Avulsos", "Mensalistas"], "Valor": [reais(din + pix + car), reais(mensal)]})
             st.altair_chart(alt.Chart(df).mark_arc(innerRadius=60).encode(
                 theta="Valor:Q", color=alt.Color("Tipo:N", scale=alt.Scale(range=[DOURADO, VERDE]), legend=alt.Legend(orient="bottom", title=None)),
-                tooltip=["Tipo", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=280), use_container_width=True)
+                tooltip=["Tipo", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=280), width="stretch")
 
         g1, g2 = st.columns(2)
-        with g1:
+        with g1.container(border=True):
             st.markdown("**Formas de recebimento**")
             df = pd.DataFrame({"Forma": ["Dinheiro", "PIX", "Cartão", "Mensalistas"], "Valor": [reais(din), reais(pix), reais(car), reais(mensal)]})
             st.altair_chart(alt.Chart(df).mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
                 x=alt.X("Forma:N", sort=None, title=None), y=alt.Y("Valor:Q", title=None),
                 color=alt.Color("Forma:N", scale=alt.Scale(domain=["Dinheiro", "PIX", "Cartão", "Mensalistas"], range=[BRONZE, ARDOSIA, DOURADO, VERDE]), legend=None),
-                tooltip=["Forma", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), use_container_width=True)
-        with g2:
+                tooltip=["Forma", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), width="stretch")
+        with g2.container(border=True):
             st.markdown("**Receita por dia da semana**")
             por_dia = {d: 0 for d in DIAS}
             for x in linhas:
@@ -229,23 +287,23 @@ with aba_geral:
             df = pd.DataFrame({"Dia": [d[:3] for d in DIAS], "Valor": [reais(por_dia[d]) for d in DIAS]})
             st.altair_chart(alt.Chart(df).mark_bar(color=ARDOSIA, cornerRadiusTopLeft=6, cornerRadiusTopRight=6).encode(
                 x=alt.X("Dia:N", sort=None, title=None), y=alt.Y("Valor:Q", title=None),
-                tooltip=["Dia", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), use_container_width=True)
+                tooltip=["Dia", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), width="stretch")
 
         g1, g2 = st.columns(2)
         cats = {}
         for x in linhas:
             for c, v in x["cats"].items():
                 cats[c] = cats.get(c, 0) + v
-        with g1:
+        with g1.container(border=True):
             st.markdown("**Despesas por categoria**")
             if cats:
                 df = pd.DataFrame({"Categoria": list(cats), "Valor": [reais(v) for v in cats.values()]})
                 st.altair_chart(alt.Chart(df).mark_bar(color=BRONZE, cornerRadiusTopRight=6, cornerRadiusBottomRight=6).encode(
                     y=alt.Y("Categoria:N", sort="-x", title=None), x=alt.X("Valor:Q", title=None),
-                    tooltip=["Categoria", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), use_container_width=True)
+                    tooltip=["Categoria", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), width="stretch")
             else:
                 st.caption("Nenhuma despesa lançada no período.")
-        with g2:
+        with g2.container(border=True):
             st.markdown("**Receitas, despesas e resultado**")
             df = pd.DataFrame([{"Mês": rotulo_curto(x["comp"]), "ordem": i, "Tipo": tp, "Valor": reais(x[kk])}
                                for i, x in enumerate(linhas) for tp, kk in (("Receitas", "receita"), ("Despesas", "despesas"), ("Resultado", "resultado"))])
@@ -253,9 +311,10 @@ with aba_geral:
                 x=alt.X("Mês:N", sort=alt.SortField("ordem"), title=None), xOffset=alt.XOffset("Tipo:N", sort=["Receitas", "Despesas", "Resultado"]),
                 y=alt.Y("Valor:Q", title=None),
                 color=alt.Color("Tipo:N", scale=alt.Scale(domain=["Receitas", "Despesas", "Resultado"], range=[VERDE, BRONZE, AZUL]), legend=alt.Legend(orient="bottom", title=None)),
-                tooltip=["Mês", "Tipo", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), use_container_width=True)
+                tooltip=["Mês", "Tipo", alt.Tooltip("Valor:Q", format=",.2f")]).properties(height=250), width="stretch")
 
-        st.markdown("**Leitura do período**")
+        ins = st.container(border=True)
+        ins.markdown("**Leitura do período**")
         itens = []
         if ativos:
             melhor = max(ativos, key=lambda x: x["receita"])
@@ -274,13 +333,13 @@ with aba_geral:
             itens.append(f"**Dia mais forte:** {dia_forte}, com {brl(por_dia[dia_forte])} somados.")
         itens.append(f"**Despesas:** {brl(desp)}; maior categoria: {max(cats, key=cats.get)} ({brl(max(cats.values()))})." if cats
                      else "**Despesas:** nenhuma lançada. O resultado só vira lucro real depois de lançar os custos.")
-        st.markdown("\n".join(f"- {i}" for i in itens))
+        ins.markdown("\n".join(f"- {i}" for i in itens))
 
 
 # ================================================================ RECEITAS
 with aba_rec:
     esq, dir_ = st.columns([2, 3], gap="large")
-    with esq:
+    with esq.container(border=True):
         st.subheader("Lançar receita")
         data_r = st.date_input("Data", value=data_padrao(), min_value=MIN_DATA, max_value=MAX_DATA, format="DD/MM/YYYY", key="r_data")
         comp_r = data_r.isoformat()[:7]
@@ -296,12 +355,12 @@ with aba_rec:
                                    format_func=lambda m: f"{m['nome']} · {descricao_veiculo(m)} · {brl(m['valor'])}")
                 st.caption(f"O pagamento quita a competência {rotulo(comp_r)}.")
                 ferias_r = st.checkbox("Férias: cobrar metade da mensalidade", key="r_ferias")
-        with st.form("f_receita", clear_on_submit=True):
+        with st.form("f_receita", clear_on_submit=True, border=False):
             pagamento = st.radio("Forma de pagamento", PAGAMENTOS, horizontal=True)
             valor = st.number_input("Valor (R$)", min_value=0.0, step=1.0, format="%.2f",
                                     value=(((sub["valor"] + 1) // 2 if ferias_r else sub["valor"]) / 100) if sub else 0.0,
                                     key=f"r_valor_{sub['id'] if sub else 'avulso'}_{int(ferias_r)}")
-            enviar = st.form_submit_button("Adicionar receita", type="primary", use_container_width=True,
+            enviar = st.form_submit_button("Adicionar receita", type="primary", width="stretch",
                                            disabled=modalidade == "Mensal" and not sub)
         if enviar:
             v = centavos(f"{valor:.2f}")
@@ -311,7 +370,7 @@ with aba_rec:
             else:
                 acao(lambda: db.add_receita(data_r.isoformat(), modalidade, pagamento, v), f"{modalidade} de {brl(v)} registrada.")
 
-    with dir_:
+    with dir_.container(border=True):
         d = mes(T, comp_r)
         st.subheader(f"Receitas de {d['rotulo']}")
         dia_total = sum(e["valor"] for e in d["ent"] if e["data"] == data_r.isoformat()) + \
@@ -356,12 +415,12 @@ with aba_men:
     todos = T["mensalistas"]
     por_id = {m["id"]: m for m in todos}
     esq, dir_ = st.columns([2, 3], gap="large")
-    with esq:
+    with esq.container(border=True):
         opcoes = [None, *[m["id"] for m in todos]]
         edit_id = st.selectbox("Cadastro", opcoes, key="m_edit",
                                format_func=lambda i: "Novo mensalista" if i is None else f"Editar: {por_id[i]['nome']}")
         m0 = por_id.get(edit_id) or {}
-        with st.form(f"f_mens_{edit_id or 'novo'}", clear_on_submit=edit_id is None):
+        with st.form(f"f_mens_{edit_id or 'novo'}", clear_on_submit=edit_id is None, border=False):
             nome = st.text_input("Nome", value=m0.get("nome", ""), placeholder="Ex.: João Silva")
             a, b = st.columns(2)
             veiculo = a.selectbox("Veículo", VEICULOS, index=VEICULOS.index(m0["veiculo"]) if m0.get("veiculo") in VEICULOS else 0)
@@ -374,12 +433,12 @@ with aba_men:
             inicio = b.date_input("Início do plano", value=date.fromisoformat(m0["inicio"]) if m0.get("inicio") else data_padrao(),
                                   min_value=MIN_DATA, max_value=MAX_DATA, format="DD/MM/YYYY")
             obs = st.text_input("Observação", value=m0.get("obs") or "", placeholder="Ex.: segunda e quarta")
-            if st.form_submit_button("Salvar alterações" if edit_id else "Cadastrar mensalista", type="primary", use_container_width=True):
+            if st.form_submit_button("Salvar alterações" if edit_id else "Cadastrar mensalista", type="primary", width="stretch"):
                 dados_m = {"nome": nome, "veiculo": veiculo, "modelo": modelo, "placa": placa, "plano": plano, "valor": centavos(f"{valor_m:.2f}"),
                            "inicio": inicio.isoformat(), "obs": obs.strip()}
                 acao(lambda: db.salvar_mensalista(dados_m, edit_id), "Cadastro atualizado." if edit_id else "Mensalista cadastrado.")
 
-    with dir_:
+    with dir_.container(border=True):
         comp_m = escolher_comp("Competência", "m_comp")
         pagos = {p["mensalista_id"]: p for p in T["pagamentos"] if p["competencia"] == comp_m}
         vigentes = [m for m in todos if m["ativo"] and (m.get("inicio") or INICIO)[:7] <= comp_m]
@@ -412,14 +471,14 @@ with aba_men:
                 ferias_m = tipo.startswith("Férias")
                 b, c, d_ = st.columns(3)
                 pagaveis = [m for m in esc if m["ativo"] and m["id"] not in pagos]
-                if b.button("Marcar pago", disabled=not pagaveis, use_container_width=True):
+                if b.button("Marcar pago", disabled=not pagaveis, width="stretch"):
                     dt = hoje() if hoje()[:7] == comp_m else comp_m + "-01"
                     acao(lambda: [db.pagar(m, comp_m, dt, forma, ferias=ferias_m) for m in pagaveis],
                          f"{len(pagaveis)} pagamento(s) de {rotulo(comp_m)} registrado(s){' como férias' if ferias_m else ''}.")
                 pagos_sel = [m for m in esc if m["id"] in pagos]
-                if c.button("Desmarcar pago", disabled=not pagos_sel, use_container_width=True):
+                if c.button("Desmarcar pago", disabled=not pagos_sel, width="stretch"):
                     acao(lambda: [db.desfazer_pagamento(m["id"], comp_m) for m in pagos_sel], "Pagamento(s) desmarcado(s).")
-                if d_.button("Ativar / inativar", use_container_width=True):
+                if d_.button("Ativar / inativar", width="stretch"):
                     acao(lambda: [db.ativar_mensalista(m["id"], not m["ativo"]) for m in esc], "Situação atualizada.")
                 excluir_popover("Excluir cadastro", len(esc), lambda: [db.del_mensalista(m["id"]) for m in esc],
                                 "Cadastro excluído. Pagamentos anteriores continuam no histórico.", "del_men")
@@ -430,17 +489,17 @@ with aba_men:
 # ================================================================ DESPESAS
 with aba_desp:
     esq, dir_ = st.columns([2, 3], gap="large")
-    with esq:
+    with esq.container(border=True):
         st.subheader("Lançar despesa")
-        with st.form("f_desp", clear_on_submit=True):
+        with st.form("f_desp", clear_on_submit=True, border=False):
             data_d = st.date_input("Data", value=data_padrao(), min_value=MIN_DATA, max_value=MAX_DATA, format="DD/MM/YYYY")
             cat = st.selectbox("Categoria", CATEGORIAS)
             desc = st.text_input("Descrição (opcional)", placeholder="Ex.: troca de lâmpadas")
             valor_d = st.number_input("Valor (R$)", min_value=0.0, step=1.0, format="%.2f")
-            if st.form_submit_button("Adicionar despesa", type="primary", use_container_width=True):
+            if st.form_submit_button("Adicionar despesa", type="primary", width="stretch"):
                 v = centavos(f"{valor_d:.2f}")
                 acao(lambda: db.add_despesa(data_d.isoformat(), cat, desc.strip(), v), f"Despesa de {brl(v)} lançada.")
-    with dir_:
+    with dir_.container(border=True):
         comp_d = escolher_comp("Competência", "d_comp")
         d = mes(T, comp_d)
         st.subheader(f"Despesas de {d['rotulo']}")
@@ -462,6 +521,7 @@ with aba_desp:
 
 # ====================================================== FECHAMENTO E DADOS
 with aba_fech:
+  with st.container(border=True):
     st.subheader("Fechamento do mês")
     st.caption("Os totais vêm dos lançamentos. Os campos manuais só valem para meses sem lançamentos (por exemplo, meses anotados em papel).")
     comp_f = escolher_comp("Competência", "f_comp")
@@ -494,7 +554,7 @@ with aba_fech:
                 acao(lambda: db.salvar_fechamento(comp_f, *(centavos(f"{v:.2f}") for v in (mc, mp, mk, mm))),
                      f"Fechamento de {rotulo(comp_f)} salvo.")
 
-    st.divider()
+  with st.container(border=True):
     st.subheader("Dados")
     a, b = st.columns(2, gap="large")
     with a:
