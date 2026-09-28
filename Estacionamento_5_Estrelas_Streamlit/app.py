@@ -14,7 +14,7 @@ import streamlit as st
 
 from dados import (CATEGORIAS, DIAS, INICIO, MESES, MODALIDADES, PAGAMENTOS, PLANOS, VEICULOS,
                    Banco, br, brl, descricao_veiculo, placa_fmt, centavos, comp_valida, competencias, converter_backup,
-                   dia_semana, hoje, mes, rotulo, rotulo_curto, ultimo_dia)
+                   agora, dia_semana, hoje, mes, rotulo, rotulo_curto, ultimo_dia)
 from relatorio import gerar_excel
 
 PASTA = Path(__file__).parent
@@ -117,9 +117,27 @@ def banco() -> Banco:
     return Banco(segredo("database_url") or str(PASTA / "local.sqlite3"))
 
 
+@st.cache_data(ttl=30, show_spinner=False)
+def carregar():
+    """Lê tudo do banco e guarda por 30 s. Cada lançamento limpa essa memória na hora,
+    então a tela fica rápida sem mostrar dado velho."""
+    return banco().tudo()
+
+
+@st.cache_data(show_spinner=False, max_entries=24)
+def excel_mes(T, comp):
+    return gerar_excel(T, comp)
+
+
+@st.cache_data(show_spinner=False, max_entries=4)
+def backup_json(T):
+    return json.dumps({"format": "5estrelas-python-v1", "exportedAt": agora(), **T},
+                      ensure_ascii=False, indent=2, default=str)
+
+
 try:
     db = banco()
-    T = db.tudo()
+    T = carregar()
 except Exception as e:  # sem conexão: mostra orientação em vez de erro técnico
     st.error("Não foi possível conectar ao banco de dados. Verifique a internet e o endereço do banco "
              "(database_url) nas configurações do app. Se o banco do Supabase estiver pausado, reative-o no painel do Supabase.")
@@ -140,11 +158,14 @@ def acao(fn, msg):
     try:
         fn()
     except ValueError as e:
+        carregar.clear()
         st.error(str(e))
         return
     except Exception as e:
+        carregar.clear()
         st.error(f"Não foi possível salvar agora. Tente de novo. ({type(e).__name__})")
         return
+    carregar.clear()  # dados mudaram: a próxima tela busca de novo no banco
     aviso(msg)
     st.rerun()
 
@@ -547,7 +568,7 @@ with aba_fech:
     k[2].metric("Cartão (avulsos)", brl(d["cartao"]))
     k[3].metric("Mensalistas", brl(d["mensal"]))
 
-    st.download_button("Baixar fechamento em Excel", data=gerar_excel(T, comp_f), type="primary",
+    st.download_button("Baixar fechamento em Excel", data=excel_mes(T, comp_f), type="primary",
                        file_name=f"Fechamento_{MESES[int(comp_f[5:]) - 1]}_{comp_f[:4]}.xlsx",
                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
@@ -586,7 +607,7 @@ with aba_fech:
     with b:
         st.markdown("**Cópia de segurança**")
         st.caption("Baixa todos os dados em um arquivo. Guarde uma cópia todo mês.")
-        st.download_button("Baixar cópia de segurança", data=db.backup(), file_name=f"5estrelas-backup-{hoje()}.json",
+        st.download_button("Baixar cópia de segurança", data=backup_json(T), file_name=f"5estrelas-backup-{hoje()}.json",
                            mime="application/json")
         if segredo("senha"):
             if st.button("Sair"):
