@@ -130,7 +130,7 @@ MAX_DATA = date(2100, 12, 31)
 
 def tabela_selecionavel(df: pd.DataFrame, key: str, altura=None):
     ev = st.dataframe(df, hide_index=True, use_container_width=True, on_select="rerun",
-                      selection_mode="multi-row", key=key, height=altura)
+                      selection_mode="multi-row", key=key, height=altura or "auto")
     return list(ev.selection.rows) if ev and ev.selection else []
 
 
