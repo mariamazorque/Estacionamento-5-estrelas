@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#073449">
+<meta name="robots" content="noindex">
+<title>Estacionamento 5 Estrelas</title>
+<link rel="icon" href="Estacionamento_5_Estrelas_Streamlit/logo.png">
+<link rel="apple-touch-icon" href="Estacionamento_5_Estrelas_Streamlit/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#eef2f5;--surface:#ffffff;--surface-2:#f3f6f8;--ink:#0b2a3c;--muted:#5d7180;--line:#dbe3e9;
+  --primary:#073449;--on-primary:#ffffff;--gold:#d6aa24;--gold-ink:#8a6a0c;--gold-soft:#fbf3d9;
+  --teal:#397c7b;--bronze:#bd783d;--slate:#7186a1;
+  --ok:#2d7650;--ok-soft:#e5f2ea;--warn:#a8601f;--warn-soft:#fbeede;--danger:#a4473b;--danger-soft:#f9e6e3;
+  --grid:rgba(7,52,73,.09);--shadow:0 1px 2px rgba(7,40,58,.05),0 8px 24px rgba(7,40,58,.05);
+  --display:"Bitter",Georgia,"Times New Roman",serif;--ui:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--bg:#0a161d;--surface:#10212b;--surface-2:#162c38;--ink:#e4edf2;--muted:#91a6b3;--line:#233e4c;
+  --primary:#d6aa24;--on-primary:#0a161d;--gold:#e0b93d;--gold-ink:#e8c55a;--gold-soft:#2c2711;
+  --teal:#5aa3a1;--bronze:#d89458;--slate:#94a9c2;
+  --ok:#6cc596;--ok-soft:#133226;--warn:#e3a266;--warn-soft:#352513;--danger:#ec8b7e;--danger-soft:#3a1c18;
+  --grid:rgba(228,237,242,.08);--shadow:0 1px 2px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#0a161d;--surface:#10212b;--surface-2:#162c38;--ink:#e4edf2;--muted:#91a6b3;--line:#233e4c;
+  --primary:#d6aa24;--on-primary:#0a161d;--gold:#e0b93d;--gold-ink:#e8c55a;--gold-soft:#2c2711;
+  --teal:#5aa3a1;--bronze:#d89458;--slate:#94a9c2;
+  --ok:#6cc596;--ok-soft:#133226;--warn:#e3a266;--warn-soft:#352513;--danger:#ec8b7e;--danger-soft:#3a1c18;
+  --grid:rgba(228,237,242,.08);--shadow:0 1px 2px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:0 96px}
+.shell{max-width:1280px;margin:0 auto}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* App bar */
+.appbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:18px 14px}
+.brand{display:flex;align-items:center;gap:12px;flex:1 1 280px;min-width:0}
+.brand img{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);background:#fff;flex:0 0 52px}
+.brand h1{font-family:var(--display);font-weight:700;font-size:clamp(19px,2.4vw,26px);line-height:1.1;margin:0;text-wrap:balance}
+.brand .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);font-weight:800}
+.sync{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:6px 11px;border-radius:999px;white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--slate)}
+.sync.on i{background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+.sync.off i{background:var(--danger)}
+.period{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Tabs: top on desktop, bottom bar on phones */
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:18px;overflow-x:auto}
+.tab{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;border-radius:10px;padding:10px 14px;font-weight:700;color:var(--muted);font-size:14px}
+.tab svg{width:18px;height:18px;flex:0 0 18px}
+.tab[aria-selected="true"]{background:var(--primary);color:var(--on-primary)}
+@media (max-width:760px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;border-radius:0;border-width:1px 0 0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));gap:2px;overflow:visible}
+  .tab{flex:1 1 0;flex-direction:column;gap:3px;padding:7px 2px;font-size:11px;min-width:0}
+  .tab span{display:none}
+  .tab::after{content:attr(data-s);white-space:nowrap}
+  .tab[aria-selected="true"]{background:var(--gold-soft);color:var(--ink)}
+  .tab[aria-selected="true"] svg{color:var(--gold-ink)}
+}
+
+/* Surfaces */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow);min-width:0}
+.panel h2{font-family:var(--display);font-size:20px;font-weight:700;margin:0;text-wrap:balance}
+.panel h3{font-size:15px;margin:0;font-weight:800}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.panel-head small{color:var(--muted);font-size:12px}
+.stack{display:grid;gap:16px}
+.view[hidden]{display:none}
+.intro{color:var(--muted);font-size:13px;margin:4px 0 0;max-width:65ch}
+
+/* KPI row */
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:4px;align-content:start;min-width:0}
+.kpi .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+.kpi .v{font-family:var(--display);font-weight:700;font-size:clamp(19px,2vw,25px);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .d{font-size:12px;color:var(--muted)}
+.kpi.lead{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.kpi.lead .l,.kpi.lead .d{color:inherit;opacity:.78}
+.kpi .v.neg{color:var(--danger)}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.charts{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.charts .w8{grid-column:span 8}.charts .w4{grid-column:span 4}.charts .w6{grid-column:span 6}.charts .w12{grid-column:span 12}
+@media (max-width:980px){.charts .w8,.charts .w4,.charts .w6{grid-column:span 12}}
+.canvas{position:relative;height:260px}
+.nochart{display:grid;place-items:center;height:100%;color:var(--muted);font-size:13px;text-align:center}
+.insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.insights{grid-template-columns:1fr}}
+.insight{background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.insight b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:4px}
+.insight p{margin:0;font-size:14px}
+
+/* Forms */
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+.field{display:grid;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label,.label{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.input,.select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:11px;padding:11px 12px;font-size:15px}
+.select.compact{width:auto;background:var(--surface);padding:8px 10px;font-size:14px;font-weight:600}
+.input:focus,.select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px var(--gold-soft)}
+.input.big{font-family:var(--display);font-size:24px;font-weight:700;padding:9px 12px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 6px;font-weight:700;font-size:14px;flex:1 1 0;min-width:0}
+[hidden]{display:none!important}
+.seg button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.btn{border:0;border-radius:11px;padding:12px 18px;font-weight:800;background:var(--primary);color:var(--on-primary);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.gold{background:var(--gold);color:#1d1705}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.block{width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.between{justify-content:space-between}
+.hint{font-size:12px;color:var(--muted)}
+
+/* Tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--surface-2);border-radius:12px;padding:10px 12px;min-width:0}
+.tile span{display:block;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.tile b{display:block;font-size:17px;font-variant-numeric:tabular-nums;margin-top:2px}
+.tile em{font-style:normal;font-size:12px;color:var(--muted)}
+.tile.strong{background:var(--gold-soft)}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--surface-2);padding:9px 12px;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td .sub{display:block;font-size:12px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:22px}
+.pill{display:inline-block;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.mute{background:var(--surface-2);color:var(--muted)}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--surface-2)}
+.act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mini{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;white-space:nowrap}
+.mini.danger{color:var(--danger)}
+.mini.danger.armed{background:var(--danger);border-color:var(--danger);color:#fff}
+.mini.go{color:var(--ok)}
+.day-row td{background:var(--surface-2);font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+.two{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+@media (max-width:980px){.two{grid-template-columns:1fr}}
+
+.banner{border-radius:14px;padding:12px 16px;font-size:14px;margin-bottom:14px;background:var(--warn-soft);color:var(--warn)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);max-width:min(560px,calc(100vw - 32px))}
+.toast.err{background:var(--danger);color:#fff}
+@media (min-width:761px){.toast{bottom:24px}}
+.steps{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
+@media (prefers-reduced-motion:no-preference){.btn,.mini,.tab{transition:background-color .15s,transform .1s}.btn:active{transform:translateY(1px)}}
+
+.field label.check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);margin-top:4px}
+/* login */
+.login{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;padding:16px}
+.login .panel{width:min(400px,100%);display:grid;gap:14px}
+.login img{width:84px;height:84px;border-radius:50%;border:2px solid var(--gold);background:#fff;justify-self:center}
+.login h1{font-family:var(--display);font-size:24px;margin:0;text-align:center}
+.login .err{color:var(--danger);font-size:14px;font-weight:600}
+.linkbtn{border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;text-decoration:underline;padding:4px}
+.saving{opacity:.6;pointer-events:none}
+
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="appbar">
+  <div class="brand">
+    <img src="Estacionamento_5_Estrelas_Streamlit/logo.png" alt="Logo do Estacionamento 5 Estrelas">
+    <div><div class="eyebrow">Gestão financeira</div><h1>Estacionamento 5 Estrelas</h1></div>
+  </div>
+  <div class="row"><span class="sync" id="sync"><i></i><span id="syncText">Conectando…</span></span><button class="linkbtn" id="logoutBtn" type="button">Sair</button></div>
+</header>
+
+<div class="banner" id="banner" hidden></div>
+
+<nav class="tabs" role="tablist" aria-label="Áreas do sistema">
+  <button class="tab" role="tab" data-tab="geral" data-s="Geral" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Visão geral</span></button>
+  <button class="tab" role="tab" data-tab="receitas" data-s="Receitas" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Receitas</span></button>
+  <button class="tab" role="tab" data-tab="mensalistas" data-s="Mensais" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.6.8 2.6 2.5 3 5.2"/></svg><span>Mensalistas</span></button>
+  <button class="tab" role="tab" data-tab="despesas" data-s="Despesas" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span>Despesas</span></button>
+  <button class="tab" role="tab" data-tab="fechamento" data-s="Fechar mês" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.5l4 4L19 7"/><rect x="2.5" y="2.5" width="19" height="19" rx="3"/></svg><span>Fechamento</span></button>
+</nav>
+
+<!-- VISÃO GERAL -->
+<section class="view stack" id="view-geral">
+  <div class="row between">
+    <div class="period">
+      <select class="select compact" id="fYear" aria-label="Ano"></select>
+      <select class="select compact" id="fMonth" aria-label="Mês"></select>
+    </div>
+    <span class="hint" id="periodText"></span>
+  </div>
+  <div class="kpis">
+    <div class="kpi lead"><span class="l">Receita no período</span><span class="v" id="kRev">—</span><span class="d" id="dRev">—</span></div>
+    <div class="kpi"><span class="l">Resultado</span><span class="v" id="kProfit">—</span><span class="d">Receita menos despesas</span></div>
+    <div class="kpi"><span class="l">Mensalistas</span><span class="v" id="kMonthly">—</span><span class="d">Mensalidades recebidas</span></div>
+    <div class="kpi"><span class="l">Em dinheiro</span><span class="v" id="kCash">—</span><span class="d">Avulsos e mensalidades</span></div>
+    <div class="kpi"><span class="l">PIX e cartão</span><span class="v" id="kPixCard">—</span><span class="d" id="dPixCard">—</span></div>
+    <div class="kpi"><span class="l">Despesas</span><span class="v" id="kExp">—</span><span class="d">Lançadas no período</span></div>
+  </div>
+  <div class="charts">
+    <div class="panel w8"><div class="panel-head"><h3>Evolução financeira</h3>
+      <select class="select compact" id="fMetric" aria-label="Indicador do gráfico">
+        <option value="revenue">Receita total</option><option value="profit">Resultado</option><option value="expenses">Despesas</option><option value="cash">Dinheiro (avulsos)</option><option value="pix">PIX (avulsos)</option><option value="card">Cartão (avulsos)</option><option value="monthly">Mensalistas</option>
+      </select></div><div class="canvas"><canvas id="cTrend"></canvas></div></div>
+    <div class="panel w4"><div class="panel-head"><h3>Mix de receita</h3><small>Avulsos × mensalistas</small></div><div class="canvas"><canvas id="cMix"></canvas></div></div>
+    <div class="panel w6"><div class="panel-head"><h3>Formas de recebimento</h3><small>Avulsos por forma + mensalistas</small></div><div class="canvas"><canvas id="cPay"></canvas></div></div>
+    <div class="panel w6"><div class="panel-head"><h3>Receita por dia da semana</h3><small>Soma dos lançamentos</small></div><div class="canvas"><canvas id="cWeek"></canvas></div></div>
+    <div class="panel w6"><div class="panel-head"><h3>Despesas por categoria</h3><small>Período selecionado</small></div><div class="canvas"><canvas id="cExpCat"></canvas></div></div>
+    <div class="panel w6"><div class="panel-head"><h3>Receitas, despesas e resultado</h3><small>Por mês</small></div><div class="canvas"><canvas id="cCompare"></canvas></div></div>
+    <div class="panel w12"><div class="panel-head"><h3>Leitura do período</h3></div><div class="insights" id="insights"></div></div>
+  </div>
+</section>
+
+<!-- RECEITAS -->
+<section class="view" id="view-receitas" hidden>
+  <div class="two">
+    <form class="panel stack" id="revForm" autocomplete="off">
+      <div><h2>Lançar receita</h2><p class="intro">Registre o valor recebido por modalidade e forma de pagamento. Não precisa de placa nem horário.</p></div>
+      <div class="field"><label for="rDate">Data</label><input class="input" type="date" id="rDate" min="2026-08-01" max="2100-12-31" required></div>
+      <div class="field"><span class="label" id="lService">Modalidade</span><div class="seg" id="rService" role="group" aria-labelledby="lService">
+        <button type="button" data-v="Rotativa" aria-pressed="true">Rotativa</button><button type="button" data-v="Pernoite" aria-pressed="false">Pernoite</button><button type="button" data-v="Diária" aria-pressed="false">Diária</button><button type="button" data-v="Mensal" aria-pressed="false">Mensal</button></div></div>
+      <div class="field" id="rSubWrap" hidden><label for="rSub">Mensalista que está pagando</label><select class="select" id="rSub"></select><label class="check"><input type="checkbox" id="rFerias" style="width:18px;height:18px"> Férias: cobrar metade da mensalidade</label><span class="hint" id="rSubHint"></span></div>
+      <div class="field"><span class="label" id="lPay">Forma de pagamento</span><div class="seg" id="rPay" role="group" aria-labelledby="lPay">
+        <button type="button" data-v="Dinheiro" aria-pressed="true">Dinheiro</button><button type="button" data-v="PIX" aria-pressed="false">PIX</button><button type="button" data-v="Cartão" aria-pressed="false">Cartão</button></div></div>
+      <div class="field"><label for="rAmount">Valor (R$)</label><input class="input big num" type="number" id="rAmount" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00" required></div>
+      <button class="btn gold block" type="submit" id="rSubmit">Adicionar receita</button>
+    </form>
+    <div class="panel">
+      <div class="panel-head"><h2 id="revMonthTitle">Receitas do mês</h2><small id="revDayTotal"></small></div>
+      <div class="tiles" id="revTiles"></div>
+      <div class="table-wrap"><table><thead><tr><th>Data</th><th>Modalidade</th><th>Pagamento</th><th class="r">Valor</th><th class="r"><span class="hint">Ação</span></th></tr></thead><tbody id="revRows"></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- MENSALISTAS -->
+<section class="view stack" id="view-mensalistas" hidden>
+  <form class="panel stack" id="subForm" autocomplete="off">
+    <div class="row between"><div><h2 id="subFormTitle">Novo mensalista</h2><p class="intro">Cadastre o cliente, o veículo, o plano e o valor mensal combinado.</p></div></div>
+    <div class="form">
+      <div class="field"><label for="sName">Nome</label><input class="input" id="sName" placeholder="Ex.: João Silva" required></div>
+      <div class="field"><label for="sVehicle">Veículo</label><select class="select" id="sVehicle"><option>Carro</option><option>Moto</option></select></div>
+      <div class="field"><label for="sModel">Modelo do veículo</label><input class="input" id="sModel" placeholder="Ex.: Onix prata"></div>
+      <div class="field"><label for="sPlate">Placa</label><input class="input" id="sPlate" placeholder="Ex.: ABC1D23" maxlength="8" autocapitalize="characters" style="text-transform:uppercase;font-variant-numeric:tabular-nums;letter-spacing:.06em"></div>
+      <div class="field"><label for="sPlan">Plano</label><select class="select" id="sPlan"><option>Todos os dias</option><option>2 vezes por semana</option><option>Personalizado</option></select></div>
+      <div class="field"><label for="sValue">Valor mensal (R$)</label><input class="input num" id="sValue" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00" required></div>
+      <div class="field"><label for="sStart">Início do plano</label><input class="input" id="sStart" type="date" min="2026-08-01" max="2100-12-31" required></div>
+      <div class="field"><label for="sNotes">Observação</label><input class="input" id="sNotes" placeholder="Ex.: segunda e quarta"></div>
+    </div>
+    <div class="row"><button class="btn" type="submit" id="sSubmit">Salvar mensalista</button><button class="btn ghost" type="button" id="sCancel" hidden>Cancelar edição</button></div>
+  </form>
+  <div class="panel">
+    <div class="panel-head"><h2>Pagamentos do mês</h2><div class="row"><label class="hint" for="subMonth">Competência</label><input class="select compact" type="month" id="subMonth" min="2026-08" max="2100-12"></div></div>
+    <div class="tiles" id="subTiles"></div>
+    <div class="table-wrap"><table><thead><tr><th>Mensalista</th><th>Veículo / plano</th><th class="r">Valor</th><th>Status</th><th class="r"><span class="hint">Ações</span></th></tr></thead><tbody id="subRows"></tbody></table></div>
+  </div>
+</section>
+
+<!-- DESPESAS -->
+<section class="view" id="view-despesas" hidden>
+  <div class="two">
+    <form class="panel stack" id="expForm" autocomplete="off">
+      <div><h2>Lançar despesa</h2><p class="intro">Cada despesa entra no resultado do mês da data informada.</p></div>
+      <div class="field"><label for="eDate">Data</label><input class="input" type="date" id="eDate" min="2026-08-01" max="2100-12-31" required></div>
+      <div class="field"><label for="eCat">Categoria</label><select class="select" id="eCat"><option>Internet</option><option>Celular</option><option>Manutenção</option><option>Contador</option><option>Salário</option><option>Impostos</option><option>Luz</option><option>Água</option><option>Aluguel</option><option>Outros</option></select></div>
+      <div class="field"><label for="eDesc">Descrição (opcional)</label><input class="input" id="eDesc" placeholder="Ex.: troca de lâmpadas"></div>
+      <div class="field"><label for="eAmount">Valor (R$)</label><input class="input big num" type="number" id="eAmount" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00" required></div>
+      <button class="btn block" type="submit" id="eSubmit">Adicionar despesa</button>
+    </form>
+    <div class="panel">
+      <div class="panel-head"><h2>Despesas do mês</h2><input class="select compact" type="month" id="expMonth" min="2026-08" max="2100-12" aria-label="Competência"></div>
+      <div class="tiles" id="expTiles"></div>
+      <div class="table-wrap"><table><thead><tr><th>Data</th><th>Categoria</th><th class="r">Valor</th><th class="r"><span class="hint">Ação</span></th></tr></thead><tbody id="expRows"></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- FECHAMENTO + DADOS -->
+<section class="view stack" id="view-fechamento" hidden>
+  <div class="panel stack">
+    <div class="row between"><div><h2>Fechamento do mês</h2><p class="intro">Os totais são calculados a partir dos lançamentos. Os campos manuais só valem para meses sem lançamentos (por exemplo, meses antigos anotados em papel).</p></div>
+      <input class="select compact" type="month" id="closeMonth" min="2026-08" max="2100-12" aria-label="Competência"></div>
+    <div class="tiles" id="closeTiles"></div>
+    <div class="row"><button class="btn gold" type="button" id="xlsxBtn">Baixar fechamento em Excel</button><span class="hint">Planilha com resumo, receitas, mensalistas e despesas do mês escolhido.</span></div>
+    <form class="form" id="closeForm">
+      <div class="field"><label for="cCash">Dinheiro (manual)</label><input class="input num" id="cCash" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label for="cPix">PIX (manual)</label><input class="input num" id="cPix" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label for="cCard">Cartão (manual)</label><input class="input num" id="cCard" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label for="cMonthly">Mensalistas (manual)</label><input class="input num" id="cMonthly" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field full"><span class="hint" id="closeNote"></span></div>
+      <div class="field"><button class="btn" type="submit" id="cSubmit">Salvar fechamento</button></div>
+    </form>
+  </div>
+
+  <div class="panel stack">
+    <div><h2>Dados e aparelhos</h2><p class="intro">Tudo o que é lançado aqui fica salvo no banco de dados na nuvem (Supabase) e aparece em qualquer aparelho conectado.</p></div>
+    <div class="two">
+      <div class="stack">
+        <h3>Trazer dados de outro app</h3>
+        <p class="hint">Aceita a cópia de segurança do sistema em Python (Streamlit), a do app no Claude e o arquivo "Exportar para Python" do dashboard antigo.</p>
+        <input class="input" type="file" id="importFile" accept=".json,application/json">
+        <div id="importPreview" class="hint"></div>
+        <div class="row"><button class="btn gold" id="importBtn" type="button" disabled>Importar dados</button></div>
+        <p class="hint">Se importar o mesmo arquivo duas vezes, nada é duplicado.</p>
+      </div>
+      <div class="stack">
+        <h3>Usar em vários aparelhos</h3>
+        <ol class="steps">
+          <li>Abra o endereço deste site no celular, tablet ou computador e entre com o seu e-mail e senha.</li>
+          <li>No celular, use <b>Adicionar à tela inicial</b> no menu do navegador para abrir como aplicativo.</li>
+          <li>O aparelho fica conectado até você clicar em <b>Sair</b>, no topo.</li>
+        </ol>
+        <h3>Cópia de segurança</h3>
+        <p class="hint">Baixa todos os dados em um arquivo JSON. Guarde uma cópia todo mês.</p>
+        <div class="row"><button class="btn ghost" id="backupBtn" type="button">Baixar cópia de segurança</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+<div class="login" id="login" hidden>
+  <form class="panel" id="loginForm" autocomplete="on">
+    <img src="Estacionamento_5_Estrelas_Streamlit/logo.png" alt="Logo do Estacionamento 5 Estrelas">
+    <h1>Estacionamento 5 Estrelas</h1>
+    <div class="field"><label for="lEmail">E-mail</label><input class="input" id="lEmail" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="lPass">Senha</label><input class="input" id="lPass" type="password" autocomplete="current-password" required></div>
+    <div class="err" id="lErr" hidden></div>
+    <button class="btn block" type="submit" id="lBtn">Entrar</button>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+(function(){
+'use strict';
+/* ====== configuração do banco (Supabase) ====== */
+const SUPABASE_URL='https://uaxevnlamknmxtbxnyfm.supabase.co';
+const SUPABASE_KEY='sb_publishable_TYjSoo0zMcnt9-0yzb6pJg_RY7Z4hRS';
+
+const $=id=>document.getElementById(id);
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WEEK=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const SERVICES=['Rotativa','Pernoite','Diária'];
+const PAYS=['Dinheiro','PIX','Cartão'];
+const MIN_KEY='2026-08';
+const TABLES=['receitas','mensalistas','pagamentos','despesas','fechamentos'];
+const fmt=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+const brl=c=>fmt.format((c||0)/100);               // valores guardados em centavos
+const cents=v=>Math.round((parseFloat(String(v).replace(',','.'))||0)*100);
+const reais=c=>(c||0)/100;
+const pct=v=>new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:1}).format(v||0);
+const sumBy=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
+const pad=n=>String(n).padStart(2,'0');
+const keyOf=(y,m)=>`${y}-${pad(m)}`;
+const labelOf=k=>{const[y,m]=k.split('-').map(Number);return `${MONTHS[m-1]} ${y}`};
+const shortLabel=k=>{const[y,m]=k.split('-').map(Number);return `${MONTHS[m-1].slice(0,3)}/${String(y).slice(2)}`};
+const br=d=>d?String(d).slice(0,10).split('-').reverse().join('/'):'—';
+function todayISO(){const t=new Date();return new Date(t.getTime()-t.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function nowISO(){return new Date().toISOString()}
+function validKey(k){return /^\d{4}-\d{2}$/.test(k||'')&&k>=MIN_KEY&&k<='2100-12'&&+k.slice(5)>=1&&+k.slice(5)<=12}
+function validDate(d){if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return false;const[y,m,dd]=d.split('-').map(Number);return validKey(d.slice(0,7))&&dd>=1&&dd<=new Date(y,m,0).getDate()}
+function weekday(d){const[y,m,dd]=d.split('-').map(Number);return WEEK[new Date(y,m-1,dd).getDay()]}
+function uid(){return (crypto.randomUUID?crypto.randomUUID():Date.now().toString(16)+Math.random().toString(16).slice(2)).replace(/-/g,'')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+const defaultKey=(()=>{const t=todayISO().slice(0,7);return t<MIN_KEY?MIN_KEY:t})();
+const defaultDate=(()=>{const t=todayISO();return t<MIN_KEY+'-01'?MIN_KEY+'-01':t})();
+// Placa: padrão antigo (ABC1234) ou Mercosul (ABC1D23).
+const normPlate=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const plateOk=p=>!p||/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p);
+const fmtPlate=p=>{p=normPlate(p);return /^[A-Z]{3}[0-9]{4}$/.test(p)?p.slice(0,3)+'-'+p.slice(3):p};
+const carDesc=m=>[m.veiculo,m.modelo,m.placa?fmtPlate(m.placa):''].filter(Boolean).join(' · ');
+
+/* ====== estado ====== */
+const D={receitas:[],mensalistas:[],pagamentos:[],despesas:[],fechamentos:[]};
+let sb=null,loaded=false;
+
+let toastT;
+function toast(msg,err=false){const t=$('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,4200)}
+function setSync(state,text){$('sync').className='sync '+(state||'');$('syncText').textContent=text}
+
+/* ====== banco ====== */
+async function selectAll(t){
+  const out=[];for(let i=0;;i+=1000){const{data,error}=await sb.from(t).select('*').range(i,i+999);if(error)throw error;out.push(...data);if(data.length<1000)break}
+  return out;
+}
+async function load(quiet){
+  try{
+    const res=await Promise.all(TABLES.map(selectAll));
+    TABLES.forEach((t,i)=>D[t]=res[i]);
+    loaded=true;setSync('on','Sincronizado');render();
+  }catch(e){setSync('off','Sem conexão');if(!quiet)toast('Não foi possível carregar os dados. Verifique a internet.',true);console.error(e)}
+}
+function fail(e){
+  console.error(e);
+  const m=String(e&&(e.message||e.details)||'');
+  if(/JWT|auth|permission|policy/i.test(m))toast('Sua sessão expirou ou não tem permissão. Saia e entre de novo.',true);
+  else toast('Não foi possível salvar agora. Verifique a internet e tente de novo.',true);
+}
+// Executa uma gravação com o botão travado; devolve true se deu certo.
+async function save(btn,fn,okMsg){
+  if(btn)btn.classList.add('saving');
+  try{await fn();if(okMsg)toast(okMsg);render();return true}
+  catch(e){if(e&&e.userMsg)toast(e.userMsg,true);else fail(e);return false}
+  finally{if(btn)btn.classList.remove('saving')}
+}
+const userErr=m=>{const e=new Error(m);e.userMsg=m;return e};
+async function q(p){const{data,error}=await p;if(error)throw error;return data}
+
+/* ====== fechamento do mês ====== */
+function monthKeys(){
+  const ks=new Set([...D.receitas.map(r=>r.data.slice(0,7)),...D.pagamentos.map(p=>p.competencia),...D.despesas.map(d=>d.data.slice(0,7)),...D.fechamentos.map(f=>f.competencia)]);
+  return [...ks].filter(validKey).sort();
+}
+function monthData(k){
+  const ent=D.receitas.filter(r=>r.data.slice(0,7)===k);
+  const pays=D.pagamentos.filter(p=>p.competencia===k);
+  const exp=D.despesas.filter(d=>d.data.slice(0,7)===k);
+  const f=D.fechamentos.find(x=>x.competencia===k)||null;
+  const hasDaily=ent.length>0,hasPays=pays.length>0;
+  const byPay=p=>sumBy(ent.filter(e=>e.pagamento===p),e=>e.valor);
+  const cash=hasDaily?byPay('Dinheiro'):(f?f.dinheiro:0);
+  const pix=hasDaily?byPay('PIX'):(f?f.pix:0);
+  const card=hasDaily?byPay('Cartão'):(f?f.cartao:0);
+  const monthly=hasPays?sumBy(pays,p=>p.valor):(f?f.mensalistas:0);
+  const mPay=p=>sumBy(pays.filter(x=>x.pagamento===p),x=>x.valor);
+  const expenses=sumBy(exp,e=>e.valor);
+  const cats={};exp.forEach(e=>cats[e.categoria]=(cats[e.categoria]||0)+e.valor);
+  const svc={};ent.forEach(e=>svc[e.modalidade]=(svc[e.modalidade]||0)+e.valor);
+  const revenue=cash+pix+card+monthly;
+  return {key:k,label:labelOf(k),ent,pays,exp,hasDaily,hasPays,manual:f,cash,pix,card,monthly,
+    mCash:mPay('Dinheiro'),mPix:mPay('PIX'),mCard:mPay('Cartão'),expenses,cats,svc,revenue,profit:revenue-expenses};
+}
+const subsSorted=()=>[...D.mensalistas].sort((a,b)=>(b.ativo-a.ativo)||String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+
+/* ====== abas ====== */
+const TABS=['geral','receitas','mensalistas','despesas','fechamento'];
+let current='geral';
+function showTab(t){
+  if(!TABS.includes(t))t='geral';current=t;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  TABS.forEach(x=>$('view-'+x).hidden=x!==t);
+  store('e5_tab',t);render();window.scrollTo({top:0});
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+
+/* ====== visão geral ====== */
+const charts={};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function chart(id,type,labels,datasets,opts={}){
+  const el=$(id);if(!el)return;
+  if(typeof Chart==='undefined'){el.parentElement.innerHTML='<div class="nochart">Gráfico indisponível sem internet.</div>';return}
+  const ink=css('--muted'),grid=css('--grid');
+  Chart.defaults.font.family='Figtree, system-ui, sans-serif';Chart.defaults.color=ink;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(el,{type,data:{labels,datasets},options:Object.assign({responsive:true,maintainAspectRatio:false,animation:matchMedia('(prefers-reduced-motion: reduce)').matches?false:{duration:300},
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:type==='doughnut'||datasets.length>1,position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14,color:ink}},
+      tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt.format(c.raw)}}},
+    scales:type==='doughnut'?{}:{x:{grid:{display:false},border:{display:false},ticks:{color:ink}},y:{beginAtZero:true,grid:{color:grid},border:{display:false},ticks:{color:ink,callback:v=>Math.abs(v)>=1000?'R$ '+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil':'R$ '+v}}}},opts)});
+}
+function fillPeriod(){
+  const ks=monthKeys();const years=[...new Set([...ks.map(k=>+k.slice(0,4)),+defaultKey.slice(0,4)])].sort();
+  const y=$('fYear'),m=$('fMonth');const yv=y.value||store('e5_y')||defaultKey.slice(0,4),mv=m.value||store('e5_m')||String(+defaultKey.slice(5));
+  y.innerHTML='<option value="all">Todos os anos</option>'+years.map(v=>`<option value="${v}">${v}</option>`).join('');
+  m.innerHTML='<option value="all">Todos os meses</option>'+MONTHS.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');
+  y.value=[...y.options].some(o=>o.value===yv)?yv:'all';m.value=mv;
+}
+['fYear','fMonth'].forEach(id=>$(id).addEventListener('change',()=>{store('e5_y',$('fYear').value);store('e5_m',$('fMonth').value);renderGeral()}));
+$('fMetric').addEventListener('change',renderGeral);
+function renderGeral(){
+  fillPeriod();
+  const y=$('fYear').value,m=$('fMonth').value;
+  const rows=monthKeys().filter(k=>(y==='all'||k.slice(0,4)===y)&&(m==='all'||+k.slice(5)===+m)).map(monthData);
+  const T=f=>sumBy(rows,f);
+  const rev=T(r=>r.revenue),exp=T(r=>r.expenses),profit=T(r=>r.profit),monthly=T(r=>r.monthly);
+  const cash=T(r=>r.cash),pix=T(r=>r.pix),card=T(r=>r.card);
+  const cashAll=cash+T(r=>r.mCash),pixAll=pix+T(r=>r.mPix),cardAll=card+T(r=>r.mCard);
+  const active=rows.filter(r=>r.revenue>0);
+  $('kRev').textContent=brl(rev);$('dRev').textContent=active.length===1?'1 mês com movimento':`${active.length} meses com movimento`;
+  $('kProfit').textContent=brl(profit);$('kProfit').classList.toggle('neg',profit<0);
+  $('kMonthly').textContent=brl(monthly);$('kCash').textContent=brl(cashAll);
+  $('kPixCard').textContent=brl(pixAll+cardAll);$('dPixCard').textContent=`PIX ${brl(pixAll)} · Cartão ${brl(cardAll)}`;
+  $('kExp').textContent=brl(exp);
+  $('periodText').textContent=rows.length?(rows.length===1?rows[0].label:`${rows[0].label} a ${rows[rows.length-1].label}`):'Nenhum lançamento neste período';
+  const metric=$('fMetric').value,metricName=$('fMetric').selectedOptions[0].textContent;
+  const labels=rows.map(r=>shortLabel(r.key));
+  const navy=css('--primary'),gold=css('--gold'),teal=css('--teal'),bronze=css('--bronze'),slate=css('--slate'),danger=css('--danger');
+  chart('cTrend','line',labels,[{label:metricName,data:rows.map(r=>reais(r[metric])),borderColor:gold,backgroundColor:gold+'22',fill:true,tension:.3,pointRadius:rows.length>1?3:6,pointBackgroundColor:gold,borderWidth:3}]);
+  chart('cMix','doughnut',['Avulsos','Mensalistas'],[{label:'Receita',data:[reais(cash+pix+card),reais(monthly)],backgroundColor:[gold,teal],borderWidth:0}],{cutout:'66%'});
+  chart('cPay','bar',['Dinheiro','PIX','Cartão','Mensalistas'],[{label:'Receita',data:[cash,pix,card,monthly].map(reais),backgroundColor:[bronze,slate,gold,teal],borderRadius:8,borderSkipped:false}]);
+  const wd={};rows.forEach(r=>{r.ent.forEach(e=>{const d=weekday(e.data);wd[d]=(wd[d]||0)+e.valor});r.pays.forEach(p=>{if(validDate(p.data)){const d=weekday(p.data);wd[d]=(wd[d]||0)+p.valor}})});
+  const order=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  chart('cWeek','bar',order.map(d=>d.slice(0,3)),[{label:'Receita',data:order.map(d=>reais(wd[d]||0)),backgroundColor:slate,borderRadius:8,borderSkipped:false}]);
+  const cats={};rows.forEach(r=>Object.entries(r.cats).forEach(([c,v])=>cats[c]=(cats[c]||0)+v));
+  const catK=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]);
+  chart('cExpCat','bar',catK.length?catK:['Sem despesas'],[{label:'Despesas',data:catK.length?catK.map(c=>reais(cats[c])):[0],backgroundColor:bronze,borderRadius:8,borderSkipped:false}],{indexAxis:'y',scales:{x:{beginAtZero:true,grid:{color:css('--grid')},border:{display:false},ticks:{color:css('--muted'),callback:v=>'R$ '+v.toLocaleString('pt-BR')}},y:{grid:{display:false},border:{display:false},ticks:{color:css('--muted')}}}});
+  chart('cCompare','bar',labels,[{label:'Receitas',data:rows.map(r=>reais(r.revenue)),backgroundColor:teal,borderRadius:6},{label:'Despesas',data:rows.map(r=>reais(r.expenses)),backgroundColor:bronze,borderRadius:6},{label:'Resultado',data:rows.map(r=>reais(r.profit)),backgroundColor:rows.map(r=>r.profit<0?danger:navy),borderRadius:6}]);
+  const items=[];
+  if(active.length){const best=[...active].sort((a,b)=>b.revenue-a.revenue)[0];items.push(['Melhor mês',`${best.label} teve a maior receita do filtro: ${brl(best.revenue)}.`])}
+  if(active.length>1){const p=active[active.length-2].revenue,c=active[active.length-1].revenue;if(p){const g=c/p-1;items.push(['Ritmo recente',`${active[active.length-1].label} ficou ${pct(Math.abs(g))} ${g>=0?'acima':'abaixo'} de ${active[active.length-2].label}.`])}}
+  const av=cash+pix+card;items.push(['Pagamento avulso',av?`PIX responde por ${pct(pix/av)} da receita avulsa; dinheiro, ${pct(cash/av)}; cartão, ${pct(card/av)}.`:'Ainda não há receita avulsa neste período.']);
+  items.push(['Mensalistas',rev?`Mensalidades são ${pct(monthly/rev)} da receita do período.`:'Sem receita no período.']);
+  const bestDay=order.filter(d=>wd[d]).sort((a,b)=>wd[b]-wd[a])[0];if(bestDay)items.push(['Dia mais forte',`${bestDay} é o dia com mais receita somada: ${brl(wd[bestDay])}.`]);
+  items.push(exp?['Despesas',`${brl(exp)} em despesas; a maior categoria é ${catK[0]} (${brl(cats[catK[0]])}).`]:['Despesas','Nenhuma despesa lançada. O resultado só vira lucro real depois de lançar os custos.']);
+  $('insights').innerHTML=items.slice(0,6).map(([t,p])=>`<div class="insight"><b>${esc(t)}</b><p>${esc(p)}</p></div>`).join('');
+}
+
+/* ====== botões de escolha ====== */
+function seg(id,onChange){const g=$(id);g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));onChange&&onChange(b.dataset.v)});return()=>g.querySelector('[aria-pressed="true"]').dataset.v}
+const getService=seg('rService',v=>{$('rSubWrap').hidden=v!=='Mensal';if(v==='Mensal'){fillSubSelect();pickSub()}else{$('rFerias').checked=false;$('rAmount').value=''}});
+const getPay=seg('rPay');
+function armed(btn,fn){
+  if(btn.classList.contains('armed')){fn();return}
+  btn.classList.add('armed');const old=btn.textContent;btn.textContent='Confirmar';
+  setTimeout(()=>{btn.classList.remove('armed');btn.textContent=old},3500);
+}
+
+/* ====== receitas ====== */
+$('rDate').value=defaultDate;
+$('rDate').addEventListener('change',()=>{renderReceitas();if(getService()==='Mensal')fillSubSelect()});
+const activeSubs=()=>subsSorted().filter(s=>s.ativo);
+const paidIds=k=>D.pagamentos.filter(p=>p.competencia===k).map(p=>p.mensalista_id);
+function fillSubSelect(){
+  const sel=$('rSub'),prev=sel.value,subs=activeSubs(),k=($('rDate').value||'').slice(0,7),paid=paidIds(k);
+  sel.innerHTML='<option value="">Selecione o mensalista</option>'+subs.map(s=>`<option value="${esc(s.id)}"${paid.includes(s.id)?' disabled':''}>${esc(s.nome)} · ${esc(carDesc(s))} · ${brl(s.valor)}${paid.includes(s.id)?' (já pago)':''}</option>`).join('');
+  if([...sel.options].some(o=>o.value===prev&&!o.disabled))sel.value=prev;
+  $('rSubHint').textContent=subs.length?`O pagamento quita a competência ${validKey(k)?labelOf(k):'da data informada'}.`:'Nenhum mensalista ativo. Cadastre na aba Mensalistas.';
+}
+const subById=id=>D.mensalistas.find(s=>s.id===id);
+function pickSub(){const s=subById($('rSub').value);$('rAmount').value=s?(reais($('rFerias').checked?Math.ceil(s.valor/2):s.valor)).toFixed(2):''}
+$('rSub').addEventListener('change',pickSub);$('rFerias').addEventListener('change',pickSub);
+async function pagar(s,k,date,payment,valor,ferias){
+  if(D.pagamentos.some(p=>p.mensalista_id===s.id&&p.competencia===k))throw userErr(`${s.nome} já pagou ${labelOf(k)}.`);
+  const row={mensalista_id:s.id,competencia:k,valor,data:date,pagamento:payment,nome:s.nome,criado_em:nowISO(),ferias:ferias?1:0};
+  await q(sb.from('pagamentos').insert(row));D.pagamentos.push(row);
+}
+$('revForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const date=$('rDate').value,service=getService(),payment=getPay(),valor=cents($('rAmount').value);
+  if(!validDate(date)){toast('Informe uma data a partir de 01/08/2026.',true);return}
+  if(!(valor>0)){toast('Informe o valor recebido.',true);return}
+  const k=date.slice(0,7);let ok;
+  if(service==='Mensal'){
+    const s=subById($('rSub').value);if(!s){toast('Selecione um mensalista ativo.',true);return}
+    const f=$('rFerias').checked;
+    ok=await save($('rSubmit'),()=>pagar(s,k,date,payment,valor,f),`${f?'Férias':'Mensalidade'} de ${s.nome} registrada.`);
+  }else{
+    const row={id:uid(),data:date,modalidade:service,pagamento:payment,valor,criado_em:nowISO()};
+    ok=await save($('rSubmit'),async()=>{await q(sb.from('receitas').insert(row));D.receitas.push(row)},`${service} de ${brl(valor)} registrada.`);
+  }
+  if(ok){$('rAmount').value='';if(service==='Mensal'){$('rFerias').checked=false;fillSubSelect();$('rSub').value=''}$('rAmount').focus()}
+});
+function renderReceitas(){
+  const date=$('rDate').value||defaultDate,k=date.slice(0,7);
+  if(!validKey(k)){$('revRows').innerHTML='<tr><td colspan="5" class="empty">Escolha uma data a partir de agosto de 2026.</td></tr>';return}
+  const d=monthData(k);
+  $('revMonthTitle').textContent='Receitas de '+d.label;
+  $('revDayTotal').textContent=`Dia ${br(date)}: ${brl(sumBy(d.ent.filter(e=>e.data===date),e=>e.valor)+sumBy(d.pays.filter(p=>p.data===date),p=>p.valor))}`;
+  const cnt=s=>d.ent.filter(e=>e.modalidade===s).length;
+  $('revTiles').innerHTML=[...SERVICES.map(s=>`<div class="tile"><span>${s}</span><b>${brl(d.svc[s]||0)}</b><em>${cnt(s)} lançamento${cnt(s)===1?'':'s'}</em></div>`),
+    `<div class="tile"><span>Mensal</span><b>${brl(sumBy(d.pays,p=>p.valor))}</b><em>${d.pays.length} pagamento${d.pays.length===1?'':'s'}</em></div>`,
+    ...PAYS.map(p=>`<div class="tile"><span>${p}</span><b>${brl(sumBy(d.ent.filter(e=>e.pagamento===p),e=>e.valor)+sumBy(d.pays.filter(x=>x.pagamento===p),x=>x.valor))}</b></div>`),
+    `<div class="tile strong"><span>Total do mês</span><b>${brl(sumBy(d.ent,e=>e.valor)+sumBy(d.pays,p=>p.valor))}</b></div>`].join('');
+  const rows=[...d.ent.map(e=>({date:e.data,service:e.modalidade,payment:e.pagamento,amount:e.valor,id:e.id,kind:'r',at:e.criado_em||''})),
+    ...d.pays.map(p=>({date:p.data||'',service:'Mensal',sub:(p.nome||(subById(p.mensalista_id)||{}).nome||'Mensalista')+(p.ferias?' · férias':''),payment:p.pagamento||'—',amount:p.valor,id:p.mensalista_id,kind:'p',at:p.criado_em||''}))]
+    .sort((a,b)=>b.date.localeCompare(a.date)||String(b.at).localeCompare(String(a.at)));
+  if(!rows.length){$('revRows').innerHTML='<tr><td colspan="5" class="empty">Nenhuma receita lançada neste mês ainda.</td></tr>';return}
+  let html='',last='';
+  for(const r of rows){
+    if(r.date!==last){last=r.date;html+=`<tr class="day-row"><td colspan="3">${validDate(r.date)?weekday(r.date)+', '+br(r.date):'Sem data'}</td><td class="r">${brl(sumBy(rows.filter(x=>x.date===r.date),x=>x.amount))}</td><td></td></tr>`}
+    html+=`<tr><td>${br(r.date)}</td><td><b>${esc(r.service)}</b>${r.sub?`<span class="sub">${esc(r.sub)}</span>`:''}</td><td>${esc(r.payment)}</td><td class="r"><b>${brl(r.amount)}</b></td><td class="r"><button class="mini danger" data-del="${r.kind}" data-id="${esc(r.id)}" data-k="${k}">Excluir</button></td></tr>`;
+  }
+  $('revRows').innerHTML=html;
+}
+$('revRows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;armed(b,()=>{
+  const{del,id,k}=b.dataset;
+  if(del==='p')save(b,async()=>{await q(sb.from('pagamentos').delete().match({mensalista_id:id,competencia:k}));D.pagamentos=D.pagamentos.filter(p=>!(p.mensalista_id===id&&p.competencia===k))},'Pagamento excluído. A mensalidade voltou a ficar pendente.');
+  else save(b,async()=>{await q(sb.from('receitas').delete().eq('id',id));D.receitas=D.receitas.filter(r=>r.id!==id)},'Receita excluída.');
+})});
+
+/* ====== mensalistas ====== */
+let editing=null;
+$('sStart').value=defaultDate;$('subMonth').value=defaultKey;
+$('subMonth').addEventListener('change',renderMensalistas);
+function clearSubForm(){editing=null;$('subForm').reset();$('sStart').value=defaultDate;$('subFormTitle').textContent='Novo mensalista';$('sCancel').hidden=true;$('sSubmit').textContent='Salvar mensalista'}
+$('sCancel').addEventListener('click',clearSubForm);
+$('subForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const nome=$('sName').value.trim(),valor=cents($('sValue').value),inicio=$('sStart').value,placa=normPlate($('sPlate').value);
+  if(!nome||!(valor>0)){toast('Informe o nome e o valor mensal.',true);return}
+  if(!validDate(inicio)){toast('A data de início deve ser a partir de 01/08/2026.',true);return}
+  if(!plateOk(placa)){toast('Placa inválida. Use o formato ABC1234 ou ABC1D23.',true);return}
+  const dados={nome,veiculo:$('sVehicle').value,modelo:$('sModel').value.trim(),placa,plano:$('sPlan').value,valor,inicio,obs:$('sNotes').value.trim()};
+  const id=editing;
+  const ok=await save($('sSubmit'),async()=>{
+    if(id){await q(sb.from('mensalistas').update(dados).eq('id',id));Object.assign(subById(id),dados)}
+    else{const row={id:uid(),...dados,ativo:1,criado_em:nowISO()};await q(sb.from('mensalistas').insert(row));D.mensalistas.push(row)}
+  },id?'Cadastro atualizado.':'Mensalista cadastrado.');
+  if(ok)clearSubForm();
+});
+function renderMensalistas(){
+  const k=$('subMonth').value;if(!validKey(k)){$('subRows').innerHTML='<tr><td colspan="5" class="empty">Escolha uma competência a partir de agosto de 2026.</td></tr>';return}
+  const paid={};D.pagamentos.filter(p=>p.competencia===k).forEach(p=>paid[p.mensalista_id]=p);
+  const all=subsSorted();
+  const act=all.filter(s=>s.ativo&&(s.inicio||MIN_KEY).slice(0,7)<=k);
+  const expected=sumBy(act,s=>paid[s.id]&&paid[s.id].ferias?paid[s.id].valor:s.valor);
+  const received=sumBy(Object.values(paid),p=>p.valor);
+  const pending=act.filter(s=>!paid[s.id]);
+  $('subTiles').innerHTML=`<div class="tile"><span>Ativos</span><b>${act.length}</b></div><div class="tile"><span>Previsto</span><b>${brl(expected)}</b></div><div class="tile"><span>Recebido</span><b>${brl(received)}</b></div><div class="tile strong"><span>Pendente</span><b>${brl(sumBy(pending,s=>s.valor))}</b><em>${pending.length} cliente${pending.length===1?'':'s'}</em></div>`;
+  if(!all.length){$('subRows').innerHTML='<tr><td colspan="5" class="empty">Nenhum mensalista cadastrado ainda. Use o formulário acima.</td></tr>';return}
+  $('subRows').innerHTML=all.map(s=>{
+    const p=paid[s.id],inactive=!s.ativo,notYet=s.inicio&&s.inicio.slice(0,7)>k;
+    const status=inactive?'<span class="pill mute">Inativo</span>':notYet?'<span class="pill mute">Começa '+br(s.inicio)+'</span>':p?`<span class="pill ok">${p.ferias?'Pago · férias':'Pago'}</span><span class="sub">${br(p.data)} · ${esc(p.pagamento||'—')}</span>`:'<span class="pill warn">Pendente</span>';
+    const payCtl=inactive||notYet?'':p?`<button class="mini" data-a="unpay" data-id="${esc(s.id)}">Desmarcar</button>`:`<select class="select compact" data-paysel="${esc(s.id)}" aria-label="Forma de pagamento de ${esc(s.nome)}"><option>PIX</option><option>Dinheiro</option><option>Cartão</option></select><select class="select compact" data-kindsel="${esc(s.id)}" aria-label="Tipo de cobrança de ${esc(s.nome)}"><option value="cheia">Mensalidade cheia</option><option value="ferias">Férias (${brl(Math.ceil(s.valor/2))})</option></select><button class="mini go" data-a="pay" data-id="${esc(s.id)}">Marcar pago</button>`;
+    return `<tr><td><b>${esc(s.nome)}</b>${s.obs?`<span class="sub">${esc(s.obs)}</span>`:''}<span class="sub">Desde ${br(s.inicio)}</span></td><td>${esc(carDesc(s))}<span class="sub">${esc(s.plano)}</span></td><td class="r">${brl(s.valor)}</td><td>${status}</td><td><div class="act">${payCtl}<button class="mini" data-a="edit" data-id="${esc(s.id)}">Editar</button><button class="mini" data-a="toggle" data-id="${esc(s.id)}">${inactive?'Ativar':'Inativar'}</button><button class="mini danger" data-a="del" data-id="${esc(s.id)}">Excluir</button></div></td></tr>`;
+  }).join('');
+}
+$('subRows').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const id=b.dataset.id,s=subById(id),k=$('subMonth').value;if(!s)return;
+  const a=b.dataset.a;
+  if(a==='pay'){
+    const payment=document.querySelector(`[data-paysel="${CSS.escape(id)}"]`).value,ferias=document.querySelector(`[data-kindsel="${CSS.escape(id)}"]`).value==='ferias';
+    const date=todayISO().slice(0,7)===k?todayISO():k+'-01';
+    save(b,()=>pagar(s,k,date,payment,ferias?Math.ceil(s.valor/2):s.valor,ferias),`${s.nome}: ${labelOf(k)} marcado como pago${ferias?' (férias)':''}.`);
+  }
+  if(a==='unpay')save(b,async()=>{await q(sb.from('pagamentos').delete().match({mensalista_id:id,competencia:k}));D.pagamentos=D.pagamentos.filter(p=>!(p.mensalista_id===id&&p.competencia===k))},'Pagamento desmarcado.');
+  if(a==='edit'){editing=id;$('sName').value=s.nome;$('sVehicle').value=s.veiculo||'Carro';$('sModel').value=s.modelo||'';$('sPlate').value=fmtPlate(s.placa||'');$('sPlan').value=s.plano||'Todos os dias';$('sValue').value=reais(s.valor).toFixed(2);$('sStart').value=s.inicio||'';$('sNotes').value=s.obs||'';$('subFormTitle').textContent='Editar '+s.nome;$('sSubmit').textContent='Salvar alterações';$('sCancel').hidden=false;$('subForm').scrollIntoView({behavior:'smooth'});$('sName').focus()}
+  if(a==='toggle'){const v=s.ativo?0:1;save(b,async()=>{await q(sb.from('mensalistas').update({ativo:v}).eq('id',id));s.ativo=v},v?'Mensalista reativado.':'Mensalista inativado.')}
+  if(a==='del')armed(b,()=>save(b,async()=>{await q(sb.from('mensalistas').delete().eq('id',id));D.mensalistas=D.mensalistas.filter(x=>x.id!==id)},'Cadastro excluído. Pagamentos anteriores continuam no histórico.'));
+});
+
+/* ====== despesas ====== */
+$('eDate').value=defaultDate;$('expMonth').value=defaultKey;
+$('expMonth').addEventListener('change',renderDespesas);
+$('expForm').addEventListener('submit',async e=>{
+  e.preventDefault();const data=$('eDate').value,categoria=$('eCat').value,valor=cents($('eAmount').value),descricao=$('eDesc').value.trim();
+  if(!validDate(data)){toast('Informe uma data a partir de 01/08/2026.',true);return}
+  if(!(valor>0)){toast('Informe o valor da despesa.',true);return}
+  const row={id:uid(),data,categoria,descricao,valor,criado_em:nowISO()};
+  const ok=await save($('eSubmit'),async()=>{await q(sb.from('despesas').insert(row));D.despesas.push(row)},`Despesa de ${brl(valor)} lançada.`);
+  if(ok){$('eAmount').value='';$('eDesc').value='';$('expMonth').value=data.slice(0,7);renderDespesas()}
+});
+function renderDespesas(){
+  const k=$('expMonth').value;if(!validKey(k)){$('expRows').innerHTML='<tr><td colspan="4" class="empty">Escolha uma competência a partir de agosto de 2026.</td></tr>';$('expTiles').innerHTML='';return}
+  const d=monthData(k),cats=Object.keys(d.cats).sort((a,b)=>d.cats[b]-d.cats[a]);
+  $('expTiles').innerHTML=cats.map(c=>`<div class="tile"><span>${esc(c)}</span><b>${brl(d.cats[c])}</b></div>`).join('')+`<div class="tile strong"><span>Total do mês</span><b>${brl(d.expenses)}</b></div>`;
+  const rows=[...d.exp].sort((a,b)=>b.data.localeCompare(a.data)||String(b.criado_em||'').localeCompare(String(a.criado_em||'')));
+  $('expRows').innerHTML=rows.length?rows.map(r=>`<tr><td>${br(r.data)}</td><td><b>${esc(r.categoria)}</b>${r.descricao?`<span class="sub">${esc(r.descricao)}</span>`:''}</td><td class="r"><b>${brl(r.valor)}</b></td><td class="r"><button class="mini danger" data-id="${esc(r.id)}">Excluir</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Nenhuma despesa nesta competência.</td></tr>';
+}
+$('expRows').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(!b)return;const id=b.dataset.id;armed(b,()=>save(b,async()=>{await q(sb.from('despesas').delete().eq('id',id));D.despesas=D.despesas.filter(x=>x.id!==id)},'Despesa excluída.'))});
+
+/* ====== fechamento ====== */
+$('closeMonth').value=defaultKey;
+let closeLoadedFor='';
+$('closeMonth').addEventListener('change',()=>{closeLoadedFor='';renderFechamento()});
+function renderFechamento(){
+  const k=$('closeMonth').value;if(!validKey(k)){$('closeTiles').innerHTML='';$('closeNote').textContent='Escolha uma competência a partir de agosto de 2026.';return}
+  const d=monthData(k);
+  $('closeTiles').innerHTML=[['Dinheiro',d.cash],['PIX',d.pix],['Cartão',d.card],['Mensalistas',d.monthly],['Despesas',d.expenses]].map(([l,v])=>`<div class="tile"><span>${l}</span><b>${brl(v)}</b></div>`).join('')+`<div class="tile strong"><span>Resultado de ${MONTHS[+k.slice(5)-1]}</span><b${d.profit<0?' style="color:var(--danger)"':''}>${brl(d.profit)}</b><em>Receita ${brl(d.revenue)}</em></div>`;
+  const f=d.manual||{};
+  if(closeLoadedFor!==k){closeLoadedFor=k;$('cCash').value=f.dinheiro?reais(f.dinheiro):'';$('cPix').value=f.pix?reais(f.pix):'';$('cCard').value=f.cartao?reais(f.cartao):'';$('cMonthly').value=f.mensalistas?reais(f.mensalistas):''}
+  ['cCash','cPix','cCard'].forEach(id=>$(id).disabled=d.hasDaily);$('cMonthly').disabled=d.hasPays;
+  $('cSubmit').disabled=d.hasDaily&&d.hasPays;
+  $('closeNote').textContent=d.hasDaily&&d.hasPays?'Este mês já tem receitas e mensalidades lançadas; os totais acima vêm dos lançamentos.':d.hasDaily?'Receitas avulsas vêm dos lançamentos. Só o total de mensalistas pode ser informado à mão.':d.hasPays?'Mensalidades vêm dos pagamentos registrados. Informe à mão só dinheiro, PIX e cartão.':'Mês sem lançamentos: os valores informados aqui entram na visão geral.';
+}
+$('closeForm').addEventListener('submit',e=>{
+  e.preventDefault();const k=$('closeMonth').value;if(!validKey(k))return;
+  const row={competencia:k,dinheiro:cents($('cCash').value),pix:cents($('cPix').value),cartao:cents($('cCard').value),mensalistas:cents($('cMonthly').value),criado_em:nowISO()};
+  save($('cSubmit'),async()=>{await q(sb.from('fechamentos').upsert(row,{onConflict:'competencia'}));D.fechamentos=D.fechamentos.filter(f=>f.competencia!==k).concat(row)},`Fechamento de ${labelOf(k)} salvo.`);
+});
+
+/* ====== Excel do fechamento ====== */
+const FMT='"R$" #,##0.00';
+function sheet(rows,moneyCols,widths){
+  const ws=XLSX.utils.aoa_to_sheet(rows),range=XLSX.utils.decode_range(ws['!ref']);
+  for(let r=range.s.r;r<=range.e.r;r++)for(const c of moneyCols){const cell=ws[XLSX.utils.encode_cell({r,c})];if(cell&&cell.t==='n')cell.z=FMT}
+  ws['!cols']=widths.map(w=>({wch:w}));return ws;
+}
+$('xlsxBtn').addEventListener('click',()=>{
+  const k=$('closeMonth').value;if(!validKey(k)){toast('Escolha uma competência a partir de agosto de 2026.',true);return}
+  if(typeof XLSX==='undefined'){toast('Não foi possível carregar o gerador de planilhas. Verifique a internet e recarregue a página.',true);return}
+  const d=monthData(k),wb=XLSX.utils.book_new(),r=reais;
+  const R=[['Estacionamento 5 Estrelas'],['Fechamento de '+d.label],['Gerado em',new Date().toLocaleString('pt-BR')],[],
+    ['RECEITAS','Valor'],['Avulsos em dinheiro',r(d.cash)],['Avulsos em PIX',r(d.pix)],['Avulsos em cartão',r(d.card)],['Mensalistas',r(d.monthly)],['Total de receitas',r(d.revenue)],[]];
+  if(d.hasDaily)R.push(['POR MODALIDADE','Valor'],...SERVICES.map(s=>[s,r(d.svc[s]||0)]),['Mensal',r(sumBy(d.pays,p=>p.valor))],[]);
+  else if(d.manual)R.push(['Receitas avulsas informadas à mão no fechamento'],[]);
+  const tot=p=>(p==='Dinheiro'?d.cash+d.mCash:p==='PIX'?d.pix+d.mPix:d.card+d.mCard);
+  R.push(['RECEBIDO POR FORMA','Valor'],...PAYS.map(p=>[p+' (avulsos + mensalidades)',r(tot(p))]),[]);
+  const cats=Object.keys(d.cats).sort((a,b)=>d.cats[b]-d.cats[a]);
+  R.push(['DESPESAS','Valor'],...(cats.length?cats.map(c=>[c,r(d.cats[c])]):[['Nenhuma despesa lançada',0]]),['Total de despesas',r(d.expenses)],[],['RESULTADO DO MÊS',r(d.profit)]);
+  XLSX.utils.book_append_sheet(wb,sheet(R,[1],[44,18]),'Resumo');
+  const rec=[...d.ent.map(e=>[e.data,e.modalidade,'',e.pagamento,r(e.valor)]),...d.pays.map(p=>[p.data||'','Mensal',(p.nome||(subById(p.mensalista_id)||{}).nome||'')+(p.ferias?' (férias)':''),p.pagamento||'',r(p.valor)])]
+    .sort((a,b)=>a[0].localeCompare(b[0])).map(x=>[br(x[0]),validDate(x[0])?weekday(x[0]):'',...x.slice(1)]);
+  XLSX.utils.book_append_sheet(wb,sheet([['Data','Dia','Modalidade','Mensalista','Pagamento','Valor'],...rec,[],['','','','','Total',r(sumBy(d.ent,e=>e.valor)+sumBy(d.pays,p=>p.valor))]],[5],[12,10,12,26,12,14]),'Receitas');
+  const paid={};d.pays.forEach(p=>paid[p.mensalista_id]=p);
+  const subs=D.mensalistas.filter(s=>paid[s.id]||(s.ativo&&(s.inicio||MIN_KEY).slice(0,7)<=k)).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  const subRows=subs.map(s=>{const p=paid[s.id];return [s.nome,s.veiculo||'',s.modelo||'',s.placa?fmtPlate(s.placa):'',s.plano||'',r(s.valor),p?(p.ferias?'Pago (férias)':'Pago'):'Pendente',p?br(p.data):'',p?(p.pagamento||''):'',p?r(p.valor):0]});
+  d.pays.filter(p=>!subById(p.mensalista_id)).forEach(p=>subRows.push([p.nome||'Mensalista (cadastro excluído)','','','','','',p.ferias?'Pago (férias)':'Pago',br(p.data),p.pagamento||'',r(p.valor)]));
+  XLSX.utils.book_append_sheet(wb,sheet([['Mensalista','Veículo','Modelo','Placa','Plano','Valor mensal','Status','Data pgto.','Forma','Valor pago'],...subRows,[],['','','','','','','','','Total recebido',r(sumBy(d.pays,p=>p.valor))]],[5,9],[28,10,18,11,20,14,14,12,12,14]),'Mensalistas');
+  const ex=[...d.exp].sort((a,b)=>a.data.localeCompare(b.data)).map(e=>[br(e.data),e.categoria,e.descricao||'',r(e.valor)]);
+  XLSX.utils.book_append_sheet(wb,sheet([['Data','Categoria','Descrição','Valor'],...ex,[],['','','Total',r(d.expenses)]],[3],[12,16,32,14]),'Despesas');
+  XLSX.writeFile(wb,`Fechamento_${MONTHS[+k.slice(5)-1]}_${k.slice(0,4)}.xlsx`);
+});
+
+/* ====== importar e cópia de segurança ====== */
+const toC=v=>Math.round((parseFloat(v)||0)*100);
+function converter(raw){
+  const out={receitas:[],mensalistas:[],pagamentos:[],despesas:[],fechamentos:[]};
+  const fmtName=raw&&raw.format;
+  if(fmtName==='5estrelas-python-v1'){
+    for(const t of TABLES)out[t]=(raw[t]||[]).filter(x=>x&&typeof x==='object');
+    out.pagamentos.forEach(p=>p.ferias=p.ferias?1:0);
+    out.mensalistas.forEach(m=>{m.modelo=m.modelo||'';m.placa=normPlate(m.placa);m.ativo=m.ativo?1:0});
+    return out;
+  }
+  if(fmtName==='5estrelas-app-v1'){
+    for(const doc of Object.values(raw.receitas||{}))for(const[i,e]of Object.entries((doc||{}).entries||{})){if(!e||e.deleted||!validDate(e.date))continue;out.receitas.push({id:i,data:e.date,modalidade:SERVICES.includes(e.service)?e.service:'Rotativa',pagamento:PAYS.includes(e.payment)?e.payment:'Dinheiro',valor:toC(e.amount),criado_em:null})}
+    for(const[i,s]of Object.entries(raw.mensalistas||{}))out.mensalistas.push({id:i,nome:s.name||'Mensalista',veiculo:s.vehicle||'Carro',modelo:s.model||'',placa:normPlate(s.plate),plano:s.plan||'Todos os dias',valor:toC(s.value),inicio:validDate(s.startDate)?s.startDate:MIN_KEY+'-01',obs:s.notes||'',ativo:s.active===false?0:1,criado_em:null});
+    for(const[k,doc]of Object.entries(raw.pagamentos||{})){if(!validKey(k))continue;for(const[sid,p]of Object.entries((doc||{}).pays||{})){if(!p||p.deleted)continue;out.pagamentos.push({mensalista_id:sid,competencia:k,valor:toC(p.value),data:validDate(p.date)?p.date:k+'-01',pagamento:p.payment||'Não informado',nome:p.name||'Mensalista',criado_em:null,ferias:p.ferias?1:0})}}
+    for(const doc of Object.values(raw.despesas||{}))for(const[i,e]of Object.entries((doc||{}).entries||{})){if(!e||e.deleted||!validDate(e.date))continue;out.despesas.push({id:i,data:e.date,categoria:e.category||'Outros',descricao:e.desc||'',valor:toC(e.amount),criado_em:null})}
+    for(const[k,f]of Object.entries(raw.fechamentos||{}))if(validKey(k)&&f)out.fechamentos.push({competencia:k,dinheiro:toC(f.cash),pix:toC(f.pix),cartao:toC(f.card),mensalistas:toC(f.monthly),criado_em:null});
+    return out;
+  }
+  const st=raw&&raw.storage;
+  if(st&&typeof st==='object'){
+    const g=n=>Array.isArray(st['estacionamento5estrelas_'+n+'_v1'])?st['estacionamento5estrelas_'+n+'_v1']:[];
+    for(const x of g('novo_set2026_diarios')){
+      const list=x.amount!==undefined?[x]:[['Dinheiro','cash'],['PIX','pix'],['Cartão','card']].filter(([,f])=>x[f]).map(([p,f],i)=>({...x,id:x.id+'_'+i,payment:p,amount:x[f]}));
+      for(const e of list)if(validDate(e.date)&&toC(e.amount)>0)out.receitas.push({id:'old'+e.id,data:e.date,modalidade:SERVICES.includes(e.service)?e.service:'Rotativa',pagamento:PAYS.includes(e.payment)?e.payment:'Dinheiro',valor:toC(e.amount),criado_em:null});
+    }
+    const subs=g('novo_set2026_mensalistas');
+    for(const s of subs)if(s&&s.name)out.mensalistas.push({id:'old'+s.id,nome:String(s.name),veiculo:s.vehicle||'Carro',modelo:'',placa:'',plano:s.plan||'Todos os dias',valor:toC(s.value),inicio:validDate(s.startDate)?s.startDate:MIN_KEY+'-01',obs:s.notes||'',ativo:s.active===false?0:1,criado_em:null});
+    for(const p of g('novo_set2026_mensalistas_pagamentos')){const k=keyOf(p.year,p.month);if(!validKey(k))continue;out.pagamentos.push({mensalista_id:'old'+p.subId,competencia:k,valor:toC(p.value),data:validDate(p.date)?p.date:k+'-01',pagamento:p.payment||'Não informado',nome:p.name||(subs.find(s=>String(s.id)===String(p.subId))||{}).name||'Mensalista',criado_em:null,ferias:0})}
+    for(const x of g('set2026_despesas'))if(validDate(x.date)&&toC(x.amount)>0)out.despesas.push({id:'old'+x.id,data:x.date,categoria:String(x.category||'Outros'),descricao:'',valor:toC(x.amount),criado_em:null});
+    const seen={};for(const x of[...g('set2026_importacao'),...g('novo_set2026_fechamentos')]){const k=keyOf(x.year,x.month);if(validKey(k))seen[k]={competencia:k,dinheiro:toC(x.cash),pix:toC(x.pix),cartao:toC(x.card),mensalistas:toC(x.monthly),criado_em:null}}
+    out.fechamentos=Object.values(seen);
+    return out;
+  }
+  throw new Error('formato');
+}
+const CONFLICT={receitas:'id',mensalistas:'id',despesas:'id',pagamentos:'mensalista_id,competencia',fechamentos:'competencia'};
+let pending=null;
+$('importFile').addEventListener('change',async e=>{
+  pending=null;$('importBtn').disabled=true;const f=e.target.files[0];if(!f)return;
+  try{
+    pending=converter(JSON.parse(await f.text()));
+    const n=t=>pending[t].length;
+    if(!TABLES.some(n))throw new Error('vazio');
+    $('importPreview').innerHTML=`Encontrado: <b>${n('receitas')}</b> receitas, <b>${n('pagamentos')}</b> mensalidades pagas, <b>${n('mensalistas')}</b> mensalistas, <b>${n('despesas')}</b> despesas e <b>${n('fechamentos')}</b> fechamentos manuais.`;
+    $('importBtn').disabled=false;
+  }catch(err){pending=null;$('importPreview').textContent=err.message==='vazio'?'O arquivo não tem lançamentos a partir de agosto de 2026.':'Arquivo não reconhecido. Use uma cópia de segurança do sistema ou o arquivo do dashboard antigo.'}
+});
+$('importBtn').addEventListener('click',async()=>{
+  if(!pending)return;const P=pending;$('importPreview').textContent='Importando…';
+  const ok=await save($('importBtn'),async()=>{
+    for(const t of TABLES)for(let i=0;i<P[t].length;i+=500)await q(sb.from(t).upsert(P[t].slice(i,i+500),{onConflict:CONFLICT[t],ignoreDuplicates:true}));
+    await load(true);
+  },'Dados importados.');
+  $('importPreview').textContent=ok?'Importação concluída. Confira os totais na Visão geral.':'A importação não terminou. Tente de novo: nada será duplicado.';
+  pending=null;$('importFile').value='';$('importBtn').disabled=true;
+});
+$('backupBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify({format:'5estrelas-python-v1',exportedAt:nowISO(),...D},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`5estrelas-backup-${todayISO()}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  toast('Cópia de segurança baixada.');
+});
+
+/* ====== desenhar ====== */
+function render(){
+  if(!loaded)return;
+  if(current==='geral')renderGeral();
+  if(current==='receitas'){renderReceitas();if(getService()==='Mensal')fillSubSelect()}
+  if(current==='mensalistas')renderMensalistas();
+  if(current==='despesas')renderDespesas();
+  if(current==='fechamento')renderFechamento();
+}
+const rerenderTheme=()=>{if(current==='geral')renderGeral()};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerenderTheme);
+
+/* ====== entrar / sair ====== */
+function showLogin(msg){$('login').hidden=false;$('lErr').hidden=!msg;$('lErr').textContent=msg||'';setSync('off','Desconectado')}
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();const btn=$('lBtn');btn.disabled=true;btn.textContent='Entrando…';
+  const{error}=await sb.auth.signInWithPassword({email:$('lEmail').value.trim(),password:$('lPass').value});
+  btn.disabled=false;btn.textContent='Entrar';
+  if(error){showLogin(/invalid/i.test(error.message)?'E-mail ou senha incorretos.':'Não foi possível entrar agora. Verifique a internet.');return}
+  $('lPass').value='';$('login').hidden=true;setSync('','Carregando…');load();
+});
+$('logoutBtn').addEventListener('click',async()=>{await sb.auth.signOut();loaded=false;TABLES.forEach(t=>D[t]=[]);showLogin()});
+
+async function boot(){
+  const start=(location.hash||'').slice(1)||store('e5_tab')||'geral';
+  current=TABS.includes(start)?start:'geral';
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===current)));
+  TABS.forEach(x=>$('view-'+x).hidden=x!==current);
+  if(!window.supabase){showLogin('Não foi possível carregar o sistema. Verifique a internet e recarregue a página.');return}
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  // Atualiza sozinho quando volta para o app e a cada minuto (lançamentos de outros aparelhos).
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&loaded)load(true)});
+  setInterval(()=>{if(document.visibilityState==='visible'&&loaded)load(true)},60000);
+  const{data}=await sb.auth.getSession();
+  if(!data||!data.session){showLogin();return}
+  setSync('','Carregando…');await load();
+}
+boot();
+})();
+
+</script>
+</body>
+</html>
