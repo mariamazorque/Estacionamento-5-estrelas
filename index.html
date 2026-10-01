@@ -692,7 +692,7 @@ const pdfMoneyW=(s,size)=>{let w=0;for(const ch of String(s).replace(/[  ]/g,
 const rgb=h=>[0,2,4].map(i=>(parseInt(h.slice(1+i,3+i),16)/255).toFixed(3)).join(' ');
 async function logoJpeg(){
   try{
-    const img=new Image();img.src='Estacionamento_5_Estrelas_Streamlit/logo.png';await img.decode();
+    const img=new Image();img.src='Estacionamento_5_Estrelas_Streamlit/logo.png';await Promise.race([new Promise((ok,no)=>{if(img.complete&&img.naturalWidth)ok();img.onload=ok;img.onerror=no}),new Promise((_,no)=>setTimeout(no,3000))]);
     const c=document.createElement('canvas');c.width=c.height=240;const g=c.getContext('2d');
     g.fillStyle='#ffffff';g.fillRect(0,0,240,240);g.drawImage(img,0,0,240,240);
     const b64=c.toDataURL('image/jpeg',0.92).split(',')[1];return {w:240,h:240,bytes:Uint8Array.from(atob(b64),x=>x.charCodeAt(0))};
