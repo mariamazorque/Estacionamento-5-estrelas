@@ -396,10 +396,10 @@ with aba_rec:
         st.subheader(f"Receitas de {d['rotulo']}")
         dia_total = sum(e["valor"] for e in d["ent"] if e["data"] == data_r.isoformat()) + \
             sum(p["valor"] for p in d["pays"] if p.get("data") == data_r.isoformat())
-        m = st.columns(4)
+        m = st.columns(5)
         for i, md in enumerate(MODALIDADES):
             m[i].metric(md, brl(d["mods"][md]))
-        m[3].metric("Mensal", brl(sum(p["valor"] for p in d["pays"])))
+        m[4].metric("Mensal", brl(sum(p["valor"] for p in d["pays"])))
         m = st.columns(4)
         por_forma = lambda f: sum(e["valor"] for e in d["ent"] if e["pagamento"] == f) + sum(p["valor"] for p in d["pays"] if p.get("pagamento") == f)
         for i, f in enumerate(PAGAMENTOS):
