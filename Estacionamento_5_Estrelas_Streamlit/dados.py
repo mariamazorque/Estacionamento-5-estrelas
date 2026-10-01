@@ -19,7 +19,7 @@ FUSO = ZoneInfo("America/Sao_Paulo")
 MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
          "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
-MODALIDADES = ["Rotativa", "Pernoite", "Diária"]
+MODALIDADES = ["Rotativa", "Pernoite", "Diária", "Semanal"]
 PAGAMENTOS = ["Dinheiro", "PIX", "Cartão"]
 CATEGORIAS = ["Internet", "Celular", "Manutenção", "Contador", "Salário", "Impostos",
               "Luz", "Água", "Aluguel", "Outros"]
