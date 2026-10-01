@@ -294,7 +294,7 @@ body{margin:0}
     <div class="row between"><div><h2>Fechamento do mês</h2><p class="intro">Os totais são calculados a partir dos lançamentos. Os campos manuais só valem para meses sem lançamentos (por exemplo, meses antigos anotados em papel).</p></div>
       <input class="select compact" type="month" id="closeMonth" min="2026-08" max="2100-12" aria-label="Competência"></div>
     <div class="tiles" id="closeTiles"></div>
-    <div class="row"><button class="btn gold" type="button" id="xlsxBtn">Baixar fechamento em Excel</button><span class="hint">Planilha com resumo, receitas, mensalistas e despesas do mês escolhido.</span></div>
+    <div class="row"><button class="btn gold" type="button" id="pdfBtn">Baixar fechamento em PDF</button><span class="hint">Uma página com o total de cada modalidade, forma de pagamento e categoria de despesa.</span></div>
     <form class="form" id="closeForm">
       <div class="field"><label for="cCash">Dinheiro (manual)</label><input class="input num" id="cCash" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
       <div class="field"><label for="cPix">PIX (manual)</label><input class="input num" id="cPix" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
@@ -344,7 +344,6 @@ body{margin:0}
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
 (function(){
@@ -686,37 +685,92 @@ $('closeForm').addEventListener('submit',e=>{
   save($('cSubmit'),async()=>{await q(sb.from('fechamentos').upsert(row,{onConflict:'competencia'}));D.fechamentos=D.fechamentos.filter(f=>f.competencia!==k).concat(row)},`Fechamento de ${labelOf(k)} salvo.`);
 });
 
-/* ====== Excel do fechamento ====== */
-const FMT='"R$" #,##0.00';
-function sheet(rows,moneyCols,widths){
-  const ws=XLSX.utils.aoa_to_sheet(rows),range=XLSX.utils.decode_range(ws['!ref']);
-  for(let r=range.s.r;r<=range.e.r;r++)for(const c of moneyCols){const cell=ws[XLSX.utils.encode_cell({r,c})];if(cell&&cell.t==='n')cell.z=FMT}
-  ws['!cols']=widths.map(w=>({wch:w}));return ws;
+/* ====== PDF do fechamento (gerado no próprio navegador, sem bibliotecas) ====== */
+const PDF_W=595.28,PDF_H=841.89;
+const pdfTxt=s=>String(s).replace(/[  ]/g,' ').replace(/[–—]/g,'-').replace(/[^\x20-\xff]/g,'?').replace(/[\\()]/g,m=>'\\'+m);
+const pdfMoneyW=(s,size)=>{let w=0;for(const ch of String(s).replace(/[  ]/g,' ')){w+=ch==='R'?722:ch===' '||ch==='.'||ch===','?278:ch==='-'?333:556}return w*size/1000};
+const rgb=h=>[0,2,4].map(i=>(parseInt(h.slice(1+i,3+i),16)/255).toFixed(3)).join(' ');
+async function logoJpeg(){
+  try{
+    const img=new Image();img.src='Estacionamento_5_Estrelas_Streamlit/logo.png';await img.decode();
+    const c=document.createElement('canvas');c.width=c.height=240;const g=c.getContext('2d');
+    g.fillStyle='#ffffff';g.fillRect(0,0,240,240);g.drawImage(img,0,0,240,240);
+    const b64=c.toDataURL('image/jpeg',0.92).split(',')[1];return {w:240,h:240,bytes:Uint8Array.from(atob(b64),x=>x.charCodeAt(0))};
+  }catch(e){return null}
 }
-$('xlsxBtn').addEventListener('click',()=>{
-  const k=$('closeMonth').value;if(!validKey(k)){toast('Escolha uma competência a partir de agosto de 2026.',true);return}
-  if(typeof XLSX==='undefined'){toast('Não foi possível carregar o gerador de planilhas. Verifique a internet e recarregue a página.',true);return}
-  const d=monthData(k),wb=XLSX.utils.book_new(),r=reais;
-  const R=[['Estacionamento 5 Estrelas'],['Fechamento de '+d.label],['Gerado em',new Date().toLocaleString('pt-BR')],[],
-    ['RECEITAS','Valor'],['Avulsos em dinheiro',r(d.cash)],['Avulsos em PIX',r(d.pix)],['Avulsos em cartão',r(d.card)],['Mensalistas',r(d.monthly)],['Total de receitas',r(d.revenue)],[]];
-  if(d.hasDaily)R.push(['POR MODALIDADE','Valor'],...SERVICES.map(s=>[s,r(d.svc[s]||0)]),['Mensal',r(sumBy(d.pays,p=>p.valor))],[]);
-  else if(d.manual)R.push(['Receitas avulsas informadas à mão no fechamento'],[]);
-  const tot=p=>(p==='Dinheiro'?d.cash+d.mCash:p==='PIX'?d.pix+d.mPix:d.card+d.mCard);
-  R.push(['RECEBIDO POR FORMA','Valor'],...PAYS.map(p=>[p+' (avulsos + mensalidades)',r(tot(p))]),[]);
+function buildPdf(ops,logo){
+  const enc=s=>Uint8Array.from(s,ch=>ch.charCodeAt(0)&255);
+  const content=enc(ops.join('\n'));
+  const objs=[
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PDF_W} ${PDF_H}] /Resources << /Font << /F1 4 0 R /F2 5 0 R >>${logo?' /XObject << /Im1 7 0 R >>':''} >> /Contents 6 0 R >>`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
+    {head:`<< /Length ${content.length} >>`,data:content}];
+  if(logo)objs.push({head:`<< /Type /XObject /Subtype /Image /Width ${logo.w} /Height ${logo.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${logo.bytes.length} >>`,data:logo.bytes});
+  const parts=[enc('%PDF-1.4\n%\xe2\xe3\xcf\xd3\n')];let len=parts[0].length;const offs=[];
+  const push=u=>{parts.push(u);len+=u.length};
+  objs.forEach((o,i)=>{offs.push(len);
+    if(typeof o==='string')push(enc(`${i+1} 0 obj\n${o}\nendobj\n`));
+    else{push(enc(`${i+1} 0 obj\n${o.head}\nstream\n`));push(o.data);push(enc('\nendstream\nendobj\n'))}});
+  const xref=len;
+  push(enc(`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+offs.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+
+    `trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`));
+  return new Blob(parts,{type:'application/pdf'});
+}
+async function fechamentoPdf(k){
+  const d=monthData(k),O=[],NAVY='#073449',GOLD='#d6aa24',SOFT='#fbf3d9',LINE='#dfe5ea',GRAY='#f3f6f8',MUTED='#5b6b77';
+  const Y=y=>(PDF_H-y).toFixed(2);
+  const rect=(x,y,w,h,fill)=>O.push(`${rgb(fill)} rg ${x.toFixed(2)} ${(PDF_H-y-h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re f`);
+  const text=(x,y,s,size,bold,color)=>O.push(`BT /${bold?'F2':'F1'} ${size} Tf ${rgb(color)} rg ${x.toFixed(2)} ${Y(y)} Td (${pdfTxt(s)}) Tj ET`);
+  const money=(xr,y,c,size,bold,color)=>{const s=brl(c);text(xr-pdfMoneyW(s,size),y,s,size,bold,color)};
+  const L=48,R=PDF_W-48,W=R-L;
+  // cabeçalho
+  rect(0,0,PDF_W,118,NAVY);
+  const logo=await logoJpeg();
+  if(logo)O.push(`q 70 0 0 70 ${L} ${Y(94)} cm /Im1 Do Q`);
+  const tx=logo?L+86:L;
+  text(tx,48,'ESTACIONAMENTO 5 ESTRELAS',10,true,GOLD);
+  text(tx,76,'Fechamento de '+d.label,22,true,'#ffffff');
+  text(tx,96,'Resumo com o total de cada categoria',10,false,'#c9d6de');
+  // destaques
+  let y=146;const bw=(W-20)/3;
+  [['RECEITAS',d.revenue,GRAY,NAVY],['DESPESAS',d.expenses,GRAY,NAVY],['RESULTADO DO MÊS',d.profit,SOFT,d.profit<0?'#a33a2c':NAVY]].forEach(([lab,v,bg,col],i)=>{
+    const x=L+i*(bw+10);rect(x,y,bw,62,bg);text(x+14,y+22,lab,8.5,true,MUTED);money(x+bw-14,y+48,v,17,true,col)});
+  y+=96;
+  let RH=24;
+  const section=(title,rows,totalLabel,total)=>{
+    text(L,y+4,title,13,true,NAVY);y+=12;rect(L,y,W,1.6,GOLD);y+=2;
+    rows.forEach(([lab,v])=>{y+=RH-7;text(L+4,y,lab,10.5,false,'#1d2a33');money(R-4,y,v,10.5,false,'#1d2a33');y+=7;rect(L,y,W,.6,LINE)});
+    y+=6;rect(L,y,W,26,GRAY);text(L+8,y+17,totalLabel,11,true,NAVY);money(R-8,y+17,total,11.5,true,NAVY);y+=26+28;
+  };
+  const rec=[];
+  if(d.hasDaily)SERVICES.forEach(s=>rec.push([s,d.svc[s]||0]));
+  else if(d.manual)rec.push(['Avulsos (informado no fechamento)',d.cash+d.pix+d.card]);
+  else SERVICES.forEach(s=>rec.push([s,0]));
+  const nPays=d.pays.length;
+  rec.push([nPays?`Mensalistas (${nPays} pagamento${nPays===1?'':'s'})`:'Mensalistas',d.monthly]);
   const cats=Object.keys(d.cats).sort((a,b)=>d.cats[b]-d.cats[a]);
-  R.push(['DESPESAS','Valor'],...(cats.length?cats.map(c=>[c,r(d.cats[c])]):[['Nenhuma despesa lançada',0]]),['Total de despesas',r(d.expenses)],[],['RESULTADO DO MÊS',r(d.profit)]);
-  XLSX.utils.book_append_sheet(wb,sheet(R,[1],[44,18]),'Resumo');
-  const rec=[...d.ent.map(e=>[e.data,e.modalidade,'',e.pagamento,r(e.valor)]),...d.pays.map(p=>[p.data||'','Mensal',(p.nome||(subById(p.mensalista_id)||{}).nome||'')+(p.ferias?' (férias)':''),p.pagamento||'',r(p.valor)])]
-    .sort((a,b)=>a[0].localeCompare(b[0])).map(x=>[br(x[0]),validDate(x[0])?weekday(x[0]):'',...x.slice(1)]);
-  XLSX.utils.book_append_sheet(wb,sheet([['Data','Dia','Modalidade','Mensalista','Pagamento','Valor'],...rec,[],['','','','','Total',r(sumBy(d.ent,e=>e.valor)+sumBy(d.pays,p=>p.valor))]],[5],[12,10,12,26,12,14]),'Receitas');
-  const paid={};d.pays.forEach(p=>paid[p.mensalista_id]=p);
-  const subs=D.mensalistas.filter(s=>paid[s.id]||(s.ativo&&(s.inicio||MIN_KEY).slice(0,7)<=k)).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
-  const subRows=subs.map(s=>{const p=paid[s.id];return [s.nome,s.veiculo||'',s.modelo||'',s.placa?fmtPlate(s.placa):'',s.plano||'',r(s.valor),p?(p.ferias?'Pago (férias)':'Pago'):'Pendente',p?br(p.data):'',p?(p.pagamento||''):'',p?r(p.valor):0]});
-  d.pays.filter(p=>!subById(p.mensalista_id)).forEach(p=>subRows.push([p.nome||'Mensalista (cadastro excluído)','','','','','',p.ferias?'Pago (férias)':'Pago',br(p.data),p.pagamento||'',r(p.valor)]));
-  XLSX.utils.book_append_sheet(wb,sheet([['Mensalista','Veículo','Modelo','Placa','Plano','Valor mensal','Status','Data pgto.','Forma','Valor pago'],...subRows,[],['','','','','','','','','Total recebido',r(sumBy(d.pays,p=>p.valor))]],[5,9],[28,10,18,11,20,14,14,12,12,14]),'Mensalistas');
-  const ex=[...d.exp].sort((a,b)=>a.data.localeCompare(b.data)).map(e=>[br(e.data),e.categoria,e.descricao||'',r(e.valor)]);
-  XLSX.utils.book_append_sheet(wb,sheet([['Data','Categoria','Descrição','Valor'],...ex,[],['','','Total',r(d.expenses)]],[3],[12,16,32,14]),'Despesas');
-  XLSX.writeFile(wb,`Fechamento_${MONTHS[+k.slice(5)-1]}_${k.slice(0,4)}.xlsx`);
+  const nRows=rec.length+PAYS.length+Math.max(1,cats.length);
+  RH=Math.max(15,Math.min(24,(PDF_H-y-70-3*72)/nRows));
+  section('Receitas por modalidade',rec,'Total de receitas',d.revenue);
+  const tot=p=>(p==='Dinheiro'?d.cash+d.mCash:p==='PIX'?d.pix+d.mPix:d.card+d.mCard);
+  section('Recebido por forma de pagamento',PAYS.map(p=>[p,tot(p)]),'Total recebido',PAYS.reduce((a,p)=>a+tot(p),0));
+  section('Despesas por categoria',cats.length?cats.map(c=>[c,d.cats[c]]):[['Nenhuma despesa lançada',0]],'Total de despesas',d.expenses);
+  // resultado final
+  rect(L,y-22,W,40,SOFT);rect(L,y-22,4,40,GOLD);
+  text(L+16,y+3,'Resultado do mês (receitas - despesas)',12,true,NAVY);money(R-14,y+3,d.profit,15,true,d.profit<0?'#a33a2c':NAVY);
+  text(L,PDF_H-30,'Gerado em '+new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})+' · Estacionamento 5 Estrelas',8.5,false,MUTED);
+  return buildPdf(O,logo);
+}
+$('pdfBtn').addEventListener('click',async()=>{
+  const k=$('closeMonth').value;if(!validKey(k)){toast('Escolha uma competência a partir de agosto de 2026.',true);return}
+  try{
+    const blob=await fechamentoPdf(k),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=`Fechamento_${MONTHS[+k.slice(5)-1]}_${k.slice(0,4)}.pdf`;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);toast('PDF do fechamento de '+labelOf(k)+' baixado.');
+  }catch(e){console.error(e);toast('Não foi possível gerar o PDF. Tente de novo.',true)}
 });
 
 /* ====== importar e cópia de segurança ====== */
