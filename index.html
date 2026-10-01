@@ -114,6 +114,7 @@ button{cursor:pointer}
 .seg button{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 6px;font-weight:700;font-size:14px;flex:1 1 0;min-width:0}
 [hidden]{display:none!important}
 .seg button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+@media(max-width:560px){#rService{display:grid;grid-template-columns:repeat(3,1fr)}}
 .btn{border:0;border-radius:11px;padding:12px 18px;font-weight:800;background:var(--primary);color:var(--on-primary);display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .btn.gold{background:var(--gold);color:#1d1705}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
@@ -230,7 +231,7 @@ body{margin:0}
       <div><h2>Lançar receita</h2><p class="intro">Registre o valor recebido por modalidade e forma de pagamento. Não precisa de placa nem horário.</p></div>
       <div class="field"><label for="rDate">Data</label><input class="input" type="date" id="rDate" min="2026-08-01" max="2100-12-31" required></div>
       <div class="field"><span class="label" id="lService">Modalidade</span><div class="seg" id="rService" role="group" aria-labelledby="lService">
-        <button type="button" data-v="Rotativa" aria-pressed="true">Rotativa</button><button type="button" data-v="Pernoite" aria-pressed="false">Pernoite</button><button type="button" data-v="Diária" aria-pressed="false">Diária</button><button type="button" data-v="Mensal" aria-pressed="false">Mensal</button></div></div>
+        <button type="button" data-v="Rotativa" aria-pressed="true">Rotativa</button><button type="button" data-v="Pernoite" aria-pressed="false">Pernoite</button><button type="button" data-v="Diária" aria-pressed="false">Diária</button><button type="button" data-v="Semanal" aria-pressed="false">Semanal</button><button type="button" data-v="Mensal" aria-pressed="false">Mensal</button></div></div>
       <div class="field" id="rSubWrap" hidden><label for="rSub">Mensalista que está pagando</label><select class="select" id="rSub"></select><label class="check"><input type="checkbox" id="rFerias" style="width:18px;height:18px"> Férias: cobrar metade da mensalidade</label><span class="hint" id="rSubHint"></span></div>
       <div class="field"><span class="label" id="lPay">Forma de pagamento</span><div class="seg" id="rPay" role="group" aria-labelledby="lPay">
         <button type="button" data-v="Dinheiro" aria-pressed="true">Dinheiro</button><button type="button" data-v="PIX" aria-pressed="false">PIX</button><button type="button" data-v="Cartão" aria-pressed="false">Cartão</button></div></div>
@@ -355,7 +356,7 @@ const SUPABASE_KEY='sb_publishable_TYjSoo0zMcnt9-0yzb6pJg_RY7Z4hRS';
 const $=id=>document.getElementById(id);
 const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const WEEK=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const SERVICES=['Rotativa','Pernoite','Diária'];
+const SERVICES=['Rotativa','Pernoite','Diária','Semanal'];
 const PAYS=['Dinheiro','PIX','Cartão'];
 const MIN_KEY='2026-08';
 const TABLES=['receitas','mensalistas','pagamentos','despesas','fechamentos'];
